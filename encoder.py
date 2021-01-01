@@ -3,11 +3,8 @@ import sys
 import time
 import math
 from typing import Dict, List
-
 from six import int2byte
 
-
-#File_name = sys.argv[1]
 def file_compress(file):
     #print("Starting encode...")
     f = open(file, "rb")
@@ -311,173 +308,9 @@ def LZ_78(line):
                     #print("III2:", line[j])
                     i = j + 1
 
-'''
-
-def file_uncompress(file78, file77, fileW, out_file):
-    print("Started decoding:")
-    #LZW
-    decodeW_d, decodeW_s = LZW_file_decode(fileW)
-    unpress_LZW = uncompress_LZW(decodeW_d, decodeW_s)
-    final_LZW = open(fileW.split('.')[0] + out_file, 'wb')
-    final_LZW.write(unpress_LZW)
-    final_LZW.close()
-
-    #LZ77
-    decode77 = LZ77_file_decode(file77)
-    unpress_LZ77 = uncompress_LZ77(decode77)
-    final_LZ77 = open(file77.split('.')[0] + out_file, 'wb')
-    final_LZ77.write(unpress_LZ77.encode(encoding="utf-8"))
-    final_LZ77.close()
-
-    #LZ78
-    decode78 = LZ78_file_decode(file78)
-    unpress_LZ78 = uncompress_LZ78(decode78)
-    final_LZ78 = open(file78.split('.')[0] + out_file, 'wb')
-    final_LZ78.write(unpress_LZ78.encode(encoding="utf-8"))
-    final_LZ78.close()
-
-    return os.path.getsize(file78.split('.')[0] + out_file), os.path.getsize(file77.split('.')[0] + out_file), os.path.getsize(fileW.split('.')[0] + out_file)
-
-def LZW_file_decode(file):
-    f = open(file, 'rb')
-    i = 0
-    symbol = []
-    extra_dict = {}
-    count = os.path.getsize(file)
-    have_dict = int.from_bytes(f.read(1), byteorder='big')
-    i += 1
-    if have_dict == 1:
-        #get the key number width
-        DN_bit_width = int.from_bytes(f.read(1), byteorder='big')
-        #get the dictionary length width
-        DL_bit_width = int.from_bytes(f.read(1), byteorder='big')
-        #get the dictionary length
-        dict_length = int.from_bytes(f.read(DL_bit_width), byteorder='big')
-        while i < dict_length:
-            #key = f.read(1).decode(encoding="utf-8")
-            #d_num = int.from_bytes(f.read(DN_bit_width), byteorder='big')
-            #update the extra dictionary
-            extra_dict.update(({f.read(1).decode(encoding="utf-8"): int.from_bytes(f.read(DN_bit_width), byteorder='big')}))
-            i += 1
-    else:
-        s_bit_width = int.from_bytes(f.read(1), byteorder='big')
-        i += 1
-        while i < count:
-            i += 2
-            symbol.append(int.from_bytes(f.read(s_bit_width), byteorder='big'))
-    return extra_dict, symbol
-
-def uncompress_LZW(decodeW_d, decodeW_s):
-    # original dictionary
-    ORIGINAL_CDICT = dict(zip((int2byte(x) for x in range(256)), range(256)))
-    # reverse dictionary
-    ORIGINAL_KDICT = [int2byte(x) for x in range(256)]
-    odict: Dict[bytes, int] = ORIGINAL_CDICT.copy()  # 字符串编码表
-    kdict: List[bytes] = ORIGINAL_KDICT.copy()  # 编码映射字符串
-    i = 0
-    #update the dictionary
-    if decodeW_d != {}:
-        for key in decodeW_d:
-            odict.update({key: decodeW_d[key]})
-    #decode the main text
-    message = kdict[decodeW_s[i]]
-    for i in range(1, len(decodeW_s)):
-        if decodeW_s[i] < len(kdict):
-            p_char = kdict[decodeW_s[i-1]]
-            c_char = (kdict[decodeW_s[i]].decode())[0].encode()
-            p_c = p_char + c_char
-            kdict.append(p_c)
-            #odict.update({p_c: kdict.index(p_c)})
-            message += kdict[decodeW_s[i]]
-        else:
-            p_char = kdict[decodeW_s[i-1]]
-            c_char = (kdict[decodeW_s[i-1]].decode())[0].encode()
-            p_c = p_char + c_char
-            kdict.append(p_c)
-            #odict.update({p_c: len(kdict)})
-            message += p_c
-
-    return message
-
-
-def LZ77_file_decode(file):
-    f = open(file, "rb")
-    i = 0
-    #get the length of the encoded file
-    count = os.path.getsize(file)
-    #read the byte width of length and pointer
-    l_b_width = int.from_bytes(f.read(1), byteorder='big')
-    p_b_width = int.from_bytes(f.read(1), byteorder='big')
-    message = []
-    #start to decode message code of LZ77
-    while i < count:
-        word = f.read(1).decode(encoding="utf-8")
-        length = int.from_bytes(f.read(l_b_width), byteorder='big')
-        pointer = int.from_bytes(f.read(p_b_width), byteorder='big')
-        message.append((pointer, length, word))
-        i = i + p_b_width + l_b_width + 1
-    return message
-
-def uncompress_LZ77(message):
-    #decoding the main text
-    de_msg = ''
-    for s in message:
-        if s[0] != 0:
-            de_msg += de_msg[(len(de_msg) - s[0]): (len(de_msg) - s[0] + s[1])]
-        de_msg += s[2]
-    return de_msg
-
-
-def LZ78_file_decode(file):
-    f = open(file, "rb")
-    i = 0
-    #get the length of the encoded file
-    count = os.path.getsize(file)
-    # read the byte width of length and pointer
-    b_width = int.from_bytes(f.read(1), byteorder='big')
-    i += 1
-    # start to decode message code of LZ78
-    while i < count:
-        #last group of encoded
-        if i > count - b_width - 2:
-            #print("DECIDE:", count - i)
-            if count - i > 2:
-                #drop one more bytes
-                last_w = f.read(1).decode(encoding="utf-8")
-                last_p = int.from_bytes(f.read(b_width), byteorder='big')
-                yield (last_p, last_w)
-                #print("W:", last_w)
-                i = i + b_width + 1
-            else:
-                i = i + b_width
-                last_p = int.from_bytes(f.read(b_width), byteorder='big')
-                yield (last_p, '')
-            #print("P:", last_p)
-        else:
-            word = f.read(1).decode(encoding="utf-8")
-            pointer = int.from_bytes(f.read(b_width), byteorder='big')
-            yield (pointer, word)
-            i = i + b_width + 1
-
-
-def uncompress_LZ78(packed):
-    #decoding the main text
-    unpacked, tree_dict = '', {}
-    for index, ch in packed:
-        if index == 0:
-            unpacked += ch
-            tree_dict[len(tree_dict) + 1] = ch
-        else:
-            term = tree_dict.get(index) + ch
-            unpacked += term
-            tree_dict[len(tree_dict) + 1] = term
-
-    return unpacked
-'''
-
-
 def main():
     byte_width = 1
+    #take the file name
     file_name = sys.argv[1]
     input_file = file_name.split('.')
     output_name = input_file[0]
