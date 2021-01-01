@@ -479,7 +479,7 @@ def uncompress_LZ78(packed):
 def main():
     file_name = sys.argv[1]
     input_file = file_name.split('.')
-    output_name = input_file[1]
+    output_name = '.' + input_file[1]
     esize_77, esize_78, esize_W = file_compress(file_name)
     print ("LZ78 encode size:", esize_78,'\n',"LZ77 encode size:", esize_77,'\n',"LZ_W encode size:", esize_W,'\n')
     dsize_78, dsize_77, dsize_W = file_uncompress("test_compare/md_78.lz", "test_compare/md_77.lz", "test_compare/md_W.lz", output_name)
