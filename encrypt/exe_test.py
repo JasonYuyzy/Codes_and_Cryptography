@@ -45,8 +45,11 @@ def main():
                     if word_list1[k] not in compare_list:
                         compare_list.append(word_list1[k])
                         f.write(word_list1[k] + '\n')
+                if len(compare_list) == list_length:
+                    print("finished early")
+                    exit()
 
-            print("About {:.2%} search done so far...".format((i + j + k) / (list_length ** 3)))
+            print("About {:.2%} search done so far...".format(list_length / (list_length ** 3)))
         #print("2  About {:.2%} search done so far...".format((i + j + k) / (list_length ** 3)))
     f.close()
     exit()
