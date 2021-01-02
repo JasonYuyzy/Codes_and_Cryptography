@@ -18,8 +18,8 @@ def check_if_right(hex_code, encode_len):
         False
 
 def main():
-    f = open("bad_words_a.txt", "a+")
     word_list = list()
+    code_list = list()
     english_words = load_words()
     for w in english_words:
         if w[0] == 'a':
@@ -34,23 +34,29 @@ def main():
             for k in range(list_length):
                 combine = word_list1[i] + '.' + word_list1[j] + '.' + word_list1[k]
                 hex_code = combine.encode().hex()
-                useless = check_if_right(hex_code, len(hex_code))
-                if useless:
-                    if word_list1[i] not in compare_list:
-                        compare_list.append(word_list1[i])
-                        f.write(word_list1[i] + '\n')
-                    if word_list1[j] not in compare_list:
-                        compare_list.append(word_list1[j])
-                        f.write(word_list1[i] + '\n')
-                    if word_list1[k] not in compare_list:
-                        compare_list.append(word_list1[k])
-                        f.write(word_list1[k] + '\n')
-                if len(compare_list) == list_length:
-                    print("finished early")
-                    exit()
+                code_list.append(hex_code)
+        print("{:.2%} combined...".format(list_length ** 2 / (list_length ** 3)))
 
-            print("About {:.2%} search done so far...".format(list_length / (list_length ** 3)))
-        #print("2  About {:.2%} search done so far...".format((i + j + k) / (list_length ** 3)))
+    count = 0
+    f = open("bad_words_a.txt", "a+")
+    for code in code_list:
+        useless = check_if_right(code, len(hex_code))
+        if useless:
+            if word_list1[i] not in compare_list:
+                compare_list.append(word_list1[i])
+                f.write(word_list1[i] + '\n')
+            if word_list1[j] not in compare_list:
+                compare_list.append(word_list1[j])
+                f.write(word_list1[i] + '\n')
+            if word_list1[k] not in compare_list:
+                compare_list.append(word_list1[k])
+                f.write(word_list1[k] + '\n')
+        if len(compare_list) == len(code_list):
+            print("finished early")
+            exit()
+        count += 1
+        if count % 15 == 0:
+            print("About {:.2%} search done so far...".format(count / len(code_list)))
     f.close()
     exit()
 
