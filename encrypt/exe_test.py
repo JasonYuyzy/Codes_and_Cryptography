@@ -35,7 +35,6 @@ def main():
                 combine = word_list1[i] + '.' + word_list1[j] + '.' + word_list1[k]
                 hex_code = combine.encode().hex()
                 useless = check_if_right(hex_code, len(hex_code))
-                print(combine, useless)
                 if useless:
                     if word_list1[i] not in compare_list:
                         compare_list.append(word_list1[i])
