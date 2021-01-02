@@ -18,7 +18,7 @@ def check_if_right(hex_code, encode_len):
         False
 
 def main():
-    f = open("bad_words_a.txt", "w")
+    f = open("bad_words_a.txt", "a+")
     word_list = list()
     english_words = load_words()
     for w in english_words:
@@ -28,37 +28,29 @@ def main():
     list_length = len(word_list)
     print("words length:", list_length)
     print("total words:", list_length ** 3)
+    compare_list = list()
     for i in range(list_length):
         for j in range(list_length):
             for k in range(list_length):
                 combine = word_list1[i] + '.' + word_list1[j] + '.' + word_list1[k]
                 hex_code = combine.encode().hex()
-                #combine = 'tile' + '.' + 'bills' + '.' + 'print'
                 useless = check_if_right(hex_code, len(hex_code))
+                print(combine, useless)
                 if useless:
-                    #three equal
-                    if word_list1[i] == word_list1[j] and word_list1[j] == word_list1[k]:
+                    if word_list1[i] not in compare_list:
+                        compare_list.append(word_list1[i])
                         f.write(word_list1[i] + '\n')
-
-                    else:
-                        #two equal
-                        if word_list1[i] == word_list1[j]:
-                            f.write(word_list1[i] + '\n')
-                            f.write(word_list1[k] + '\n')
-                        elif word_list1[j] == word_list1[k]:
-                            f.write(word_list1[j] + '\n')
-                            f.write(word_list1[i] + '\n')
-                        elif word_list1[i] == word_list1[k]:
-                            f.write(word_list1[i] + '\n')
-                            f.write(word_list1[j] + '\n')
-                        else:
-                            #no equal
-                            f.write(word_list1[i] + '\n')
-                            f.write(word_list1[j] + '\n')
-                            f.write(word_list1[k] + '\n')
+                    if word_list1[j] not in compare_list:
+                        compare_list.append(word_list1[j])
+                        f.write(word_list1[i] + '\n')
+                    if word_list1[k] not in compare_list:
+                        compare_list.append(word_list1[k])
+                        f.write(word_list1[k] + '\n')
 
             print("About {:.2%} search done so far...".format((i + j + k) / (list_length ** 3)))
         #print("2  About {:.2%} search done so far...".format((i + j + k) / (list_length ** 3)))
+    f.close()
+    exit()
 
 
 if __name__ == '__main__':
