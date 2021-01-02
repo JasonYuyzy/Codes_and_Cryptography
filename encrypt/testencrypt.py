@@ -35,12 +35,12 @@ def main():
                 if location:
                     print("the final location is:", combine)
                     ends = time.time()
-                    if time % 10 == 0:
-                        print("About {:.2%} search done so far...".format((i+j+k)/list_length))
                     time_cost = ends - starts
                     print("searching time:", time_cost)
                     print("searching steps:", i + j + k)
                     exit()
+            print("About {:.2%} search done so far...".format((i + j + k) / (list_length ** 3)))
+        #print("2  About {:.2%} search done so far...".format((i + j + k) / (list_length ** 3)))
 
 
 if __name__ == '__main__':
