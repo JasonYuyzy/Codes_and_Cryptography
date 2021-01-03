@@ -4999,3 +4999,9 @@ exsec.ilks.vasty:                             1895de616feb496f6a06bd30f4dd7211
 fliers.gegg.welf:                             641b8cf9fb17ce8b2a27e0528b733b1e
 gawp.brims.bluer:                             e523a3263ddba2603996a4220cc72b3c
 aulos.flute.lina:                             4a26903c9777a41363b2f16b35af9f60
+arle.brio.cheero:   96ba2131aa494c40a9a25d603854d6cc
+aweel.batt.cuish:   563f8b61a940dafc911f52eea7831a43
+adon.beamy.cloud:   9db5821431fd01e15d41807c4d37e6fb
+acing.book.compd:   1351bb6e21c17e0b03bafc826254efd6
+appl.billy.capax:   102cd3b872da783e988871523f588d3e
+axeman.bels.chun:   1aaf45096503b3b9768677466bb1a8cd
