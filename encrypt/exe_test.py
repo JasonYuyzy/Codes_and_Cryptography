@@ -23,7 +23,7 @@ def main():
     word_list1 = list()
     word_list2 = list()
     word_list3 = list()
-    total = 600
+    total = 1200
     head = 'a b c'
     head_list = head.split(' ')
     w1, w2, w3 = head_list[0], head_list[1], head_list[2]
@@ -44,11 +44,9 @@ def main():
     list_length1 = len(word_list1)
     list_length2 = len(word_list2)
     list_length3 = len(word_list3)
-    print("words start with {0} : {1]".format(w1, list_length1))
-    print("words start with {0} : {1]".format(w2, list_length2))
-    print("words start with {0} : {1]".format(w3, list_length3))
-    p1.start(total)
-    count1 = 0
+    print("words start with {0} : {1}".format(w1, list_length1))
+    print("words start with {0} : {1}".format(w2, list_length2))
+    print("words start with {0} : {1}".format(w3, list_length3))
     write_in = 0
     for i in range(list_length1):
         for j in range(list_length2):
@@ -74,8 +72,6 @@ def main():
                         out = combine + ":"
                         f.write(out.ljust(20, ' ') + code + '\n')
                         write_in += 1
-                count1 += 1
-                p1.update(count1)
 
     f.close()
     print("There are totally {0} recorded".format(write_in))
