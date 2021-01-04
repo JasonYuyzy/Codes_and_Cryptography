@@ -28,7 +28,7 @@ def main():
     word_list2 = list()
     word_list3 = list()
     total = 1200
-    head = 'til bill prin'
+    head = 'til bil prin'
     head_list = head.split(' ')
     w1, w2, w3 = head_list[0], head_list[1], head_list[2]
     english_words = load_words()
@@ -40,7 +40,7 @@ def main():
                 if w != 'fuck' and w != 'shit':
                     if w[0:3] == w1:
                         word_list1.append(w)
-                    if w[0:4] == w2:
+                    if w[0:3] == w2:
                         word_list2.append(w)
                     if w[0:4] == w3:
                         word_list3.append(w)
@@ -82,21 +82,22 @@ def main():
                 if k == total - 1:
                     print("There are totally {0} recorded".format(write_in))
                     exit()'''
+    # search the target
     p.start(list_length3 * list_length1 * list_length2)
     count = 0
     for i in range(list_length1):
         for j in range(list_length2):
-            for k in range(list_length3):
-                combine = word_list1[i] + '.' + word_list2[j] + '.' + word_list3[k]
-                if len(combine) == 16:
-                    hex_code = combine.encode().hex()
-                    encoded, code = check_if_right(hex_code, len(hex_code))
-                    if encoded == 1:
-                        out = combine + ":"
-                        f.write(out.ljust(20, ' ') + code + '\n')
-                        write_in += 1
-                count += 1
-                p.update(count)
+            combine = word_list1[i] + '.' + word_list2[j] + '.' + word_list3[random.randint(0, list_length3 - 1)]
+            if len(combine) == 16:
+                hex_code = combine.encode().hex()
+                encoded, code = check_if_right(hex_code, len(hex_code))
+                if encoded == 1:
+                    out = combine + ":"
+                    f.write(out.ljust(20, ' ') + code + '\n')
+                    write_in += 1
+            count += 1
+            p.update(count)
+
     print("There are totally {0} recorded".format(write_in))
     f.close()
     exit()
