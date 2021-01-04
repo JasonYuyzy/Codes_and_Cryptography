@@ -4,19 +4,23 @@ import random
 import subprocess
 import progressbar
 from rich.progress import track
+
 p = progressbar.ProgressBar()
 
 check_str = '903408ec4d951acfaeb47ca88390c475'
+
 
 def load_words():
     with open('words_alpha.txt') as word_file1:
         valid_words = word_file1.read().split()
     return valid_words
 
+
 def check_if_right(hex_code, encode_len):
     check = r'encrypt.exe "' + hex_code + '"'
     a = subprocess.getstatusoutput(check)
     return 1, a[1]
+
 
 def main():
     f = open("bad_words_d1.txt", "a+")
@@ -29,7 +33,7 @@ def main():
     w1, w2, w3 = head_list[0], head_list[1], head_list[2]
     english_words = load_words()
     print("total words number:", len(english_words))
-    #pop out the word which length bigger than 4
+    # pop out the word which length bigger than 4
     for w in track(english_words):
         if len(w) > 3:
             if len(w) < 7:
@@ -48,6 +52,7 @@ def main():
     print("words start with {0} : {1}".format(w2, list_length2))
     print("words start with {0} : {1}".format(w3, list_length3))
     write_in = 0
+    # randomly comparing the codes
     '''
     for i in range(list_length1):
         for j in range(list_length2):
