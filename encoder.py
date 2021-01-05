@@ -336,7 +336,7 @@ def main():
         s_W.close()
         smallest_file.close()
 
-    print ("LZ78 encode size:", esize_78,'\n',"LZ77 encode size:", esize_77,'\n',"LZ_W encode size:", esize_W,'\n')
+    #print ("LZ78 encode size:", esize_78,'\n',"LZ77 encode size:", esize_77,'\n',"LZ_W encode size:", esize_W,'\n')
     #dsize_78, dsize_77, dsize_W = file_uncompress("md_78.lz", "md_77.lz", "md_W.lz", output_name)
     #print("LZ78 decode size:",dsize_78,'\n',"LZ77 decode size:",dsize_77, '\n',"LZ_W decode size:", dsize_W)
 
