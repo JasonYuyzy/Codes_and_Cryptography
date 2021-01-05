@@ -79,7 +79,6 @@ def file_compress(file):
     else:
         s_bit_width = 1
     #record the symbol bit width
-    #print("S_BIT:", s_bit_width)
     LZW.write(int.to_bytes(s_bit_width, 1, byteorder='big'))
     #record the symbol into byte
     for final_num in final_LZW:
@@ -227,7 +226,6 @@ def LZ_77(line, count):
     win = count
     pointer = 0
     message = line
-    print("message length:", len(message))
 
     compressed_message = list()  #message temporal storage
     #encoding the main text
@@ -362,9 +360,9 @@ def LZW_file_decode(file):
     else:
         s_bit_width = int.from_bytes(f.read(1), byteorder='big')
         i += 1
-        while i < count:
-            i += 2
-            symbol.append(int.from_bytes(f.read(s_bit_width), byteorder='big'))
+    while i < count:
+        symbol.append(int.from_bytes(f.read(s_bit_width), byteorder='big'))
+        i += s_bit_width
     return extra_dict, symbol
 
 def uncompress_LZW(decodeW_d, decodeW_s):
@@ -379,6 +377,7 @@ def uncompress_LZW(decodeW_d, decodeW_s):
     if decodeW_d != {}:
         for key in decodeW_d:
             odict.update({key: decodeW_d[key]})
+    print(len(decodeW_s))
     #decode the main text
     message = kdict[decodeW_s[i]]
     for i in range(1, len(decodeW_s)):
@@ -446,13 +445,11 @@ def LZ78_file_decode(file):
                 last_w = f.read(1).decode(encoding="utf-8")
                 last_p = int.from_bytes(f.read(b_width), byteorder='big')
                 yield (last_p, last_w)
-                #print("W:", last_w)
                 i = i + b_width + 1
             else:
                 i = i + b_width
                 last_p = int.from_bytes(f.read(b_width), byteorder='big')
                 yield (last_p, '')
-            #print("P:", last_p)
         else:
             word = f.read(1).decode(encoding="utf-8")
             pointer = int.from_bytes(f.read(b_width), byteorder='big')
@@ -487,4 +484,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
