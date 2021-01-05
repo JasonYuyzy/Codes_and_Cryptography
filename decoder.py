@@ -55,7 +55,7 @@ def LZW_file_decode(file):
         s_bit_width = int.from_bytes(f.read(1), byteorder='big')
         i += 1
         while i < count:
-            i += 2
+            i += s_bit_width
             symbol.append(int.from_bytes(f.read(s_bit_width), byteorder='big'))
     return extra_dict, symbol
 
