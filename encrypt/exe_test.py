@@ -19,31 +19,31 @@ def load_words():
 def check_if_right(hex_code, encode_len):
     check = r'encrypt.exe "' + hex_code + '"'
     a = subprocess.getstatusoutput(check)
-    return 1, a[1]
+    if a[1] == check_str:
+        return 1, a[1]
+    else:
+        return 0, ''
 
 
 def main():
-    f = open("bad_words_d1.txt", "a+")
+    f = open("final.txt", "w")
     word_list1 = list()
     word_list2 = list()
     word_list3 = list()
     total = 1200
-    head = 'til bil prin'
+    head = "' ' '"
     head_list = head.split(' ')
     w1, w2, w3 = head_list[0], head_list[1], head_list[2]
     english_words = load_words()
     print("total words number:", len(english_words))
-    # pop out the word which length bigger than 4
+    # pop out the word which length bigger than 3 smaller than 7
     for w in track(english_words):
         if len(w) > 3:
             if len(w) < 7:
                 if w != 'fuck' and w != 'shit':
-                    if w[0:3] == w1:
-                        word_list1.append(w)
-                    if w[0:3] == w2:
-                        word_list2.append(w)
-                    if w[0:4] == w3:
-                        word_list3.append(w)
+                    word_list1.append(w)
+                    word_list2.append(w)
+                    word_list3.append(w)
 
     list_length1 = len(word_list1)
     list_length2 = len(word_list2)
@@ -83,7 +83,7 @@ def main():
                     print("There are totally {0} recorded".format(write_in))
                     exit()'''
     # search the target
-    p.start(list_length3 * list_length1 * list_length2)
+    p.start(list_length1 * list_length2)
     count = 0
     for i in range(list_length1):
         for j in range(list_length2):
