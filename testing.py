@@ -478,15 +478,13 @@ def O_encode(echo):
 
 def Huf_file_decode(file):
     f = open(file, 'rb')
-    f.seek(0, 2)
-    eof = f.tell()
-    f.seek(0)
+    d_of = os.path.getsize(file)
+    print("dof:", d_of)
     # get the branch number
     count = int.from_bytes(f.read(2), byteorder='big')
     # get the byte width
     bit_width = int.from_bytes(f.read(1), byteorder='big')
     i = 0
-    last = 0
     de_dict = {}
     # analyze the head
     while i < count:
@@ -508,7 +506,7 @@ def Huf_file_decode(file):
     data = b''
     out_text = ''
     # start decoding
-    while i < eof:  # 开始解压数据
+    while i < d_of:
         raw = int.from_bytes(f.read(1), byteorder='big')
         # print("raw:",raw)
         i = i + 1
@@ -524,10 +522,9 @@ def Huf_file_decode(file):
                 out_text += O_inverse_dict[data].decode()
                 data = b''
             j = j - 1
-        tem = int(i / eof * 100)
-        raw = 0
     f.close()
     return out_text
+
 
 def LZW_file_decode(file):
     f = open(file, 'rb')
@@ -570,7 +567,6 @@ def uncompress_LZW(decodeW_d, decodeW_s):
     if decodeW_d != {}:
         for key in decodeW_d:
             odict.update({key: decodeW_d[key]})
-    print(len(decodeW_s))
     #decode the main text
     message = kdict[decodeW_s[i]]
     for i in range(1, len(decodeW_s)):
