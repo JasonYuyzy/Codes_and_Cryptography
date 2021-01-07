@@ -433,7 +433,7 @@ def main():
     output_name = input_file[0]
     smallest_file = open(output_name + '.lz', 'wb')
     esize_77, esize_78, esize_W, esize_Hu = file_compress(file_name)
-    smallest = min([esize_77, esize_78, esize_W])
+    smallest = min([esize_77, esize_78, esize_W, esize_Hu])
     if smallest == esize_77:
         s_77 = open("compare_file/md_77.lz", 'rb')
         smallest_file.write(int.to_bytes(77, byte_width, byteorder='big'))
