@@ -3,6 +3,34 @@ import sys
 from typing import Dict, List
 from six import int2byte
 
+# buile the data collection
+node_dict = {}
+ec_dict = {}
+nodes = []
+inverse_dict = {}
+
+# analyze the node of Huffman coding
+class hu_node(object):
+    def __init__(self, value=None, left=None, right=None, father=None):
+        self.value = value
+        self.left = left
+        self.right = right
+        self.father = father
+
+    def build_father(left, right):
+        n = hu_node(value=left.value + right.value, left=left, right=right)
+        left.father = right.father = n
+        return n
+
+    def encode(n):
+        if n.father == None:
+            return b''
+        if n.father.left == n:
+            # left branch '0'
+            return hu_node.encode(n.father) + b'0'
+        else:
+            # right branch '1'
+            return hu_node.encode(n.father) + b'1'
 
 def file_uncompress(file, decoder, out_file):
     print("Started decoding:")
@@ -20,13 +48,87 @@ def file_uncompress(file, decoder, out_file):
         unpress_LZ78 = uncompress_LZ78(decode78)
         final_outfile.write(unpress_LZ78.encode(encoding="utf-8"))
         final_outfile.close()
-    else:
+    elif decoder == 79: #LZW
         decodeW_d, decodeW_s = LZW_file_decode(file)
         unpress_LZW = uncompress_LZW(decodeW_d, decodeW_s)
         final_outfile.write(unpress_LZW)
         final_outfile.close()
+    else:
+        unpress_Hu = Huf_file_decode(file)
+        final_outfile.write(unpress_Hu.encode(encoding="utf-8"))
+        final_outfile.close()
 
     #return os.path.getsize(file78.split('.')[0] + out_file), os.path.getsize(file77.split('.')[0] + out_file), os.path.getsize(fileW.split('.')[0] + out_file)
+
+
+# building the huffman tree
+def D_build_tree(l):
+    if len(l) == 1:
+        return l
+    sorts = sorted(l, key=lambda x: x.value, reverse=False)
+    n = hu_node.build_father(sorts[0], sorts[1])
+    sorts.pop(0)
+    sorts.pop(0)
+    sorts.append(n)
+    return D_build_tree(sorts)
+
+def D_encode(echo):
+    for x in node_dict.keys():
+        ec_dict[x] = hu_node.encode(node_dict[x])
+        #output the form for testing
+        if echo == True:
+            print(x)
+            print(ec_dict[x])
+
+def Huf_file_decode(file):
+    f = open(file, 'rb')
+    # pop one byte
+    f.read(1)
+    d_of = os.path.getsize(file)
+    # get the branch number
+    count = int.from_bytes(f.read(2), byteorder='big')
+    # get the byte width
+    bit_width = int.from_bytes(f.read(1), byteorder='big')
+    i = 0
+    de_dict = {}
+    # analyze the head
+    while i < count:
+        key = f.read(1)
+        value = int.from_bytes(f.read(bit_width), byteorder='big')
+        de_dict[key] = value
+        i = i + 1
+    for x in de_dict.keys():
+        node_dict[x] = hu_node(de_dict[x])
+        nodes.append(node_dict[x])
+    # rebuild the tree
+    tree = D_build_tree(nodes)
+    # rebuild the form
+    D_encode(False)
+    # build the reverse dictionary
+    for x in ec_dict.keys():
+        inverse_dict[ec_dict[x]] = x
+    i = f.tell()
+    data = b''
+    out_text = ''
+    # start decoding
+    while i < d_of:
+        raw = int.from_bytes(f.read(1), byteorder='big')
+        i = i + 1
+        j = 8
+        while j > 0:
+            if (raw >> (j - 1)) & 1 == 1:
+                data = data + b'1'
+                raw = raw & (~(1 << (j - 1)))
+            else:
+                data = data + b'0'
+                raw = raw & (~(1 << (j - 1)))
+            if inverse_dict.get(data, 0) != 0:
+                out_text += inverse_dict[data].decode()
+                data = b''
+            j = j - 1
+    f.close()
+    return out_text
+
 
 def LZW_file_decode(file):
     f = open(file, 'rb')
@@ -55,7 +157,7 @@ def LZW_file_decode(file):
         s_bit_width = int.from_bytes(f.read(1), byteorder='big')
         i += 1
         while i < count:
-            i += 2
+            i += s_bit_width
             symbol.append(int.from_bytes(f.read(s_bit_width), byteorder='big'))
     return extra_dict, symbol
 
