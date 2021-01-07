@@ -479,7 +479,6 @@ def O_encode(echo):
 def Huf_file_decode(file):
     f = open(file, 'rb')
     d_of = os.path.getsize(file)
-    print("dof:", d_of)
     # get the branch number
     count = int.from_bytes(f.read(2), byteorder='big')
     # get the byte width
