@@ -58,7 +58,7 @@ def file_compress(file):
     else:
         bit_width = 1
 
-    Huf = open("test_compare/md_hu.lz", 'wb')
+    Huf = open("compare_file/md_hu.lz", 'wb')
     # write the branch humber
     Huf.write(int.to_bytes(len(ec_dict), 2, byteorder='big'))
     # write the byte width
@@ -277,8 +277,7 @@ def Huffman(file, count):
     # building the code form
     encode(False)
     return buff
-
-#building the huffman tree
+# building the huffman tree
 def build_tree(l):
     if len(l) == 1:
         return l
