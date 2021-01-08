@@ -2,10 +2,6 @@ import os
 import time
 import random
 import subprocess
-import progressbar
-from rich.progress import track
-
-p = progressbar.ProgressBar()
 
 check_str = '903408ec4d951acfaeb47ca88390c475'
 
@@ -37,7 +33,7 @@ def main():
     english_words = load_words()
     print("total words number:", len(english_words))
     # pop out the word which length bigger than 3 smaller than 7
-    for w in track(english_words):
+    for w in english_words:
         if len(w) > 3:
             if len(w) < 7:
                 if w != 'fuck' and w != 'shit':
@@ -83,7 +79,6 @@ def main():
                     print("There are totally {0} recorded".format(write_in))
                     exit()'''
     # search the target
-    p.start(list_length1 * list_length2)
     count = 0
     for i in range(list_length1):
         for j in range(list_length2):
@@ -95,9 +90,7 @@ def main():
                     out = combine + ":"
                     f.write(out.ljust(20, ' ') + code + '\n')
                     write_in += 1
-                    exit()
             count += 1
-            p.update(count)
 
     print("There are totally {0} recorded".format(write_in))
     f.close()
