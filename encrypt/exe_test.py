@@ -15,7 +15,7 @@ def load_words():
 def check_if_right(hex_code, encode_len):
     check = r'encrypt.exe "' + hex_code + '"'
     a = subprocess.getstatusoutput(check)
-    if a[0:16] == check_str[0:16]:
+    if a[1][0:16] == check_str[0:16]:
         return 1, a[1]
     else:
         return 0, ''
