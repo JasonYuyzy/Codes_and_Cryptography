@@ -23,7 +23,7 @@ def check_if_right(hex_code, num):
 
 def task(num):
     print("processing from:", num, "~", num + 1000)
-    f = open("final.txt", "a+")
+    final = open("final.txt", "a+")
     range_chose = num + 1000
     word_list1 = list()
     word_list2 = list()
@@ -32,8 +32,7 @@ def task(num):
     word_list6 = list()
     english_words = load_words()
     print("Processing: start from", num, "total words number:", len(english_words))
-    if range_chose > len(english_words):
-        range_chose = len(english_words)
+
     # pop out the word which length bigger than 3 smaller than 7
     for w in english_words:
         if len(w) > 3:
@@ -53,6 +52,8 @@ def task(num):
     list_length4 = len(word_list4)
     list_length5 = len(word_list5)
     list_length6 = len(word_list6)
+    if range_chose > list_length1:
+        range_chose = list_length1
     write_in = 0
     # search the target
     count = 0
@@ -70,14 +71,14 @@ def task(num):
                 encoded, code = check_if_right(hex_code, num)
                 if encoded == 1:
                     out = combine + ":"
-                    f.write(out.ljust(20, ' ') + code + '\n')
+                    final.write(out.ljust(20, ' ') + code + '\n')
                     write_in += 1
             count += 1
         if i%10 == 0:
             print("Processing: start from ", num, "There are totally {0} recorded".format(count))
 
     print("Processing: start from ", num, "There are totally {0} recorded".format(write_in))
-    f.close()
+    final.close()
 
 
 if __name__ == '__main__':
