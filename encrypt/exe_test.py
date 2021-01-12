@@ -2,20 +2,17 @@
 import time
 import random
 import subprocess
-#import progressbar
 from multiprocessing import Pool
 
 check_str = '903408ec4d951acfaeb47ca88390c475'
-#pg = progressbar.ProgressBar()
 
 def load_words():
-    with open('words_alpha.txt') as word_file1:
+    with open('10k_words.txt') as word_file1:
         valid_words = word_file1.read().split()
     return valid_words
 
 
 def check_if_right(hex_code, num):
-    #print("Processing:", num, "using:", num)
     check = r'encrypt' + str(num) + '.exe "' + hex_code + '"'
     a = subprocess.getstatusoutput(check)
     if a[1][0:16] == check_str[0:16]:
@@ -25,19 +22,16 @@ def check_if_right(hex_code, num):
 
 
 def task(num):
-    print("processing from:", num, "~", num + 10000)
+    print("processing from:", num, "~", num + 1000)
     f = open("final.txt", "a+")
-    range_chose = num + 10000
+    range_chose = num + 1000
     word_list1 = list()
     word_list2 = list()
     word_list4 = list()
     word_list5 = list()
     word_list6 = list()
-    head = "' ' '"
-    head_list = head.split(' ')
-    w1, w2, w3 = head_list[0], head_list[1], head_list[2]
     english_words = load_words()
-    print("Processing:", num, "total words number:", len(english_words))
+    print("Processing: start from", num, "total words number:", len(english_words))
     if range_chose > len(english_words):
         range_chose = len(english_words)
     # pop out the word which length bigger than 3 smaller than 7
@@ -59,11 +53,6 @@ def task(num):
     list_length4 = len(word_list4)
     list_length5 = len(word_list5)
     list_length6 = len(word_list6)
-    #print("Processing:", num, "1st words start with {0} : {1}".format(w1, list_length1))
-    #print("Processing:", num, "2st words start with {0} : {1}".format(w2, list_length2))
-    #print("Processing:", num, "3rd words start with {0} : {1}".format(w3, list_length4))
-    #print("Processing:", num, "3rd words start with {0} : {1}".format(w3, list_length5))
-    #print("Processing:", num, "3rd words start with {0} : {1}".format(w3, list_length6))
     write_in = 0
     # search the target
     count = 0
@@ -78,28 +67,28 @@ def task(num):
                 combine += word_list4[random.randint(0,list_length4-1)]
             if len(combine) == 16:
                 hex_code = combine.encode().hex()
-                encoded, code = check_if_right(hex_code, len(hex_code))
+                encoded, code = check_if_right(hex_code, num)
                 if encoded == 1:
                     out = combine + ":"
                     f.write(out.ljust(20, ' ') + code + '\n')
                     write_in += 1
             count += 1
+        if i%10 == 0:
+            print("Processing: start from ", num, "There are totally {0} recorded".format(count))
 
-    print("Processing:", num, "There are totally {0} recorded".format(write_in))
+    print("Processing: start from ", num, "There are totally {0} recorded".format(write_in))
     f.close()
 
-def test_task(num):
-    print("task:", num, time.time())
-    time.sleep(3)
-    print("ending:", num)
 
 if __name__ == '__main__':
+    print("processing start:", time.ctime())
+    start = time.time()
     p = Pool(2)
-    pending_list = [0, 10000, 20000, 30000, 40000, 50000]
+    pending_list = [0, 1000, 2000, 3000, 4000]
     for i in pending_list:
         p.apply_async(task, args=(i,))
-    print("start")
     p.close()
     p.join()
-    print("done")
+    end = time.time()
+    print("The total searching time is:", end - start)
 
