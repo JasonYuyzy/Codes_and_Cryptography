@@ -27,7 +27,7 @@
 
 \normalsize\item[4)]{Attack}
 \newline\normalsize\indent\setlength{\parindent}{2em}I first try with the 10k words list because it is the shortest one can finished earlier. By limited the 10k words list with the conditions behind, the number of the words can be reduced to 4k+8 words. So I separate it into 5 groups for the first loop (5 groups run in parallel using 8-core CPU with 16GB RAM on my Windows Laptop). After 280479s (around three days), the output of the first step are three combinations of the location, they are \textbf{"tile.bill.crimes", "tile.bills.catch","tile.billy.spies"}. \newline Then in the second step, use the word "tile" as the first word. Combine the second from words "bill", "bills", "billy" and the third from the 4k+8 words list again to encrypted by \textbf{encrypt.exe} and compare the outcome string. Fortunately, the words list contain the third word "print" and the final answer for the 3 words is \textbf{"tile.bills.print"}.
-\newline\textbf{The total running time is around 280479s+841s=281320s (78 hours). And the exactly location shows on Google Maps is: 7346 Melrose St, Philadelphia, PA 19136 US}
+\newline\textbf{The total running time is around 280479s+841s=281320s (78 hours). The total search for the word is $4008^2+3\times4008=16076088$. And the exactly location shows on Google Maps is: 7346 Melrose St, Philadelphia, PA 19136 US}
 \end{enumerate}
 \begin{figure}[H]
 \centering
