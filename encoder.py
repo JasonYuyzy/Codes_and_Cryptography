@@ -1,8 +1,6 @@
 import os
 import sys
-import time
-import math
-from typing import Dict, List
+from typing import Dict
 from six import int2byte
 
 # buile the data collection
@@ -134,7 +132,9 @@ def file_compress(file):
         LZW.wrtie(int.to_bytes(dict_length, DL_bit_width, byteorder='big'))
         #recording the extra dictionary
         for num in range(len(key)):
-            LZW.write(key[num].encode(encoding="utf-8"))
+            ######################write in coder#######################
+            LZW.write(key[num].encode(encoding="ascii"))
+            #LZW.write(key[num].encode(encoding="utf-8"))
             LZW.write(int.to_bytes(dict_num[num], DN_bit_width, byteorder='big'))
     else:
         # record whether have the extra dictionary (have)
@@ -160,15 +160,6 @@ def file_compress(file):
 
     LZW.close()
 
-    #LZW_decode = open("md_W.lz", 'rb')
-
-    #print("extra:", int.from_bytes(LZW_decode.read(1), byteorder='big'))
-    #os_bit_width = int.from_bytes(LZW_decode.read(1), byteorder='big')
-    #while True:
-    #    print(int.from_bytes(LZW_decode.read(os_bit_width), byteorder='big'))
-    #    if LZW_decode.read(os_bit_width) == b'':
-    #        break
-    #exit()
 
 
 #compressing with the LZ77
@@ -209,7 +200,9 @@ def file_compress(file):
     LZ77.write(int.to_bytes(p_bit_width, 1, byteorder='big'))
 
     for num in range(len(pointer)):
-        LZ77.write(word[num].encode(encoding="utf-8"))
+        ######################write in coder#######################
+        LZ77.write(word[num].encode(encoding="ascii"))
+        #LZ77.write(word[num].encode(encoding="utf-8"))
         LZ77.write(int.to_bytes(length[num], l_bit_width, byteorder='big'))
         LZ77.write(int.to_bytes(pointer[num], p_bit_width, byteorder='big'))
 
@@ -240,8 +233,9 @@ def file_compress(file):
             LZ78.write(b'')
             #print(pointer[num], word[num].encode())
         else:
-            #print(word[num].encode(encoding="utf-8"))
-            LZ78.write(word[num].encode(encoding="utf-8"))
+            ######################write in coder#######################
+            LZ78.write(word[num].encode(encoding="ascii"))
+            #LZ78.write(word[num].encode(encoding="utf-8"))
         LZ78.write(int.to_bytes(pointer[num], bit_width_78, byteorder='big'))
         ##############test the difference of the encoding
         #print(int.to_bytes(pointer[num], bit_width_78, byteorder='big'))
@@ -299,7 +293,7 @@ def encode(echo):
 def LZ_W(file, count):
     # original dictionary
     ORIGINAL_CDICT = dict(zip((int2byte(x) for x in range(256)), range(256)))
-    odict: Dict[bytes, int] = ORIGINAL_CDICT.copy()  # 字符串编码表
+    odict: Dict[bytes, int] = ORIGINAL_CDICT.copy()
     cdict = odict.copy()
     f = open(file, "rb")
     p_char = b''
@@ -342,17 +336,11 @@ def LZ_77(line, count):
     pointer = 0
     message = line
     print("message length:", len(message))
-
-    compressed_message = list()  #message temporal storage
+    # message temporal storage
+    compressed_message = list()
     #encoding the main text
     while True:
 
-        #if pointer > 1179:
-            #time.sleep(3)
-            #print("length update:", length, "pointer update:", pointer)
-            #print(message[pointer:pointer+length])
-            #print(match.find(message[pointer:pointer + length + 1]) != -1)
-            #print(first)
 
         if pointer - win < 0:
             match = message[0:pointer]
@@ -362,11 +350,6 @@ def LZ_77(line, count):
             if pointer + length == count - 1:
                 break
             length += 1
-
-            #if pointer > 1179:
-                #print(message[pointer:pointer + length])
-                #print(match.find(message[pointer:pointer + length + 1]) != -1)
-                #time.sleep(3)
 
         first = match.find(message[pointer:pointer + length])
         if pointer - win > 0:
@@ -381,8 +364,6 @@ def LZ_77(line, count):
             pointer += 1
 
         length = 0
-        #if pointer > 1179:
-            #print(match.find(message[pointer:pointer + length + 1]) != -1)
         if pointer == len(message):
             break
     #print(compressed_message)
@@ -426,6 +407,11 @@ def LZ_78(line):
                     i = j + 1
 
 def main():
+    folder = os.path.exists("./compare_file")
+    #make the floder compare_file
+    if not folder:
+        os.makedirs("./compare_file")
+    #write in byte width
     byte_width = 1
     #take the file name
     file_name = sys.argv[1]

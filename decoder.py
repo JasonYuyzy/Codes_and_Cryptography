@@ -151,7 +151,9 @@ def LZW_file_decode(file):
             #key = f.read(1).decode(encoding="utf-8")
             #d_num = int.from_bytes(f.read(DN_bit_width), byteorder='big')
             #update the extra dictionary
-            extra_dict.update(({f.read(1).decode(encoding="utf-8"): int.from_bytes(f.read(DN_bit_width), byteorder='big')}))
+            ######################write out coder#######################
+            extra_dict.update(({f.read(1).decode(encoding="ascii"): int.from_bytes(f.read(DN_bit_width), byteorder='big')}))
+            #extra_dict.update(({f.read(1).decode(encoding="utf-8"): int.from_bytes(f.read(DN_bit_width), byteorder='big')}))
             i += 1
     else:
         s_bit_width = int.from_bytes(f.read(1), byteorder='big')
@@ -207,7 +209,9 @@ def LZ77_file_decode(file):
     message = []
     #start to decode message code of LZ77
     while i < count:
-        word = f.read(1).decode(encoding="utf-8")
+        ######################write out coder#######################
+        word = f.read(1).decode(encoding="ascii")
+        #word = f.read(1).decode(encoding="utf-8")
         length = int.from_bytes(f.read(l_b_width), byteorder='big')
         pointer = int.from_bytes(f.read(p_b_width), byteorder='big')
         message.append((pointer, length, word))
@@ -241,7 +245,9 @@ def LZ78_file_decode(file):
             #print("DECIDE:", count - i)
             if count - i > 2:
                 #drop one more bytes
-                last_w = f.read(1).decode(encoding="utf-8")
+                ######################write out coder#######################
+                last_w = f.read(1).decode(encoding="ascii")
+                #last_w = f.read(1).decode(encoding="utf-8")
                 last_p = int.from_bytes(f.read(b_width), byteorder='big')
                 yield (last_p, last_w)
                 #print("W:", last_w)
@@ -252,7 +258,9 @@ def LZ78_file_decode(file):
                 yield (last_p, '')
             #print("P:", last_p)
         else:
-            word = f.read(1).decode(encoding="utf-8")
+            ######################write out coder#######################
+            word = f.read(1).decode(encoding="ascii")
+            #word = f.read(1).decode(encoding="utf-8")
             pointer = int.from_bytes(f.read(b_width), byteorder='big')
             yield (pointer, word)
             i = i + b_width + 1
