@@ -200,7 +200,7 @@ def LZ77_file_decode(file):
     #pop out the first bit
     f.read(1)
     #get the length of the encoded file
-    count = os.path.getsize(file)
+    count = os.path.getsize(file) - 1
     #read the byte width of length and pointer
     l_b_width = int.from_bytes(f.read(1), byteorder='big')
     p_b_width = int.from_bytes(f.read(1), byteorder='big')
@@ -230,7 +230,7 @@ def LZ78_file_decode(file):
     # pop out the first bit
     f.read(1)
     #get the length of the encoded file
-    count = os.path.getsize(file)
+    count = os.path.getsize(file) - 1
     # read the byte width of length and pointer
     b_width = int.from_bytes(f.read(1), byteorder='big')
     i += 1
