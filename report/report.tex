@@ -17,7 +17,12 @@
 \begin{enumerate}
 \normalsize\item[1)]{Number Adaptive Encoding with 'big'}
 \begin{spacing}{1.5}
-\normalsize\indent\setlength{\parindent}{2em}As the LZ series and Huffman are all cumming out with the number sequence. And to prevent to write the number to the zip file directly. I Use the function $int.to_bytes(number, write_in_length, byteorder="big")$ to encode the int sequence into the certain bytes length to reduce the length waste, such as encoding the number \textbf{234} into byte b'\verb|\|xea', as the byte width 1 according to the table below.
+\normalsize\indent\setlength{\parindent}{2em}As the LZ series and Huffman are all cumming out with the number sequence. And to prevent to write the number to the zip file directly. I Use the function $int.to_bytes(number, write_in_length, byteorder="big")$ to encode the int sequence into the certain bytes length to reduce the length waste, such as encoding the number \textbf{234} into byte b'\verb|\|xea', as the write in byte width is 1. Which greatly help shorten compressed number.
+\end{spacing}
+
+\normalsize\item[2)]{Length Adaptive Encoding}
+\begin{spacing}{1.5}
+\normalsize\indent\setlength{\parindent}{2em}Base on the first idea. The different int number has the different length of the encoding while write into the \textbf{.lz} file. I found that the length requirements are as follow:
 \newline
 \newline
 \begin{tabular}{|l|c|r|}
@@ -31,10 +36,14 @@ width 2&width 3&width 4\\
 By finding the biggest int number to decide which width is fix for encoding to reduce the compressing space.
 \end{spacing}
 
-\normalsize\item[1)]{Number Adaptive Encoding with 'big'}
+\normalsize\item[3)]{Length Adaptive Encoding}
 \begin{spacing}{1.5}
 \normalsize\indent\setlength{\parindent}{2em}
+
+
 \end{spacing}
+
+
 \end{enumerate}
 
 
