@@ -179,7 +179,7 @@ def file_compress(file):
         s_bit_width = 1
     ORIGINAL_KDICT = [int2byte(x) for x in range(256)]
     kdict: List[bytes] = ORIGINAL_KDICT.copy()
-    waiting = encode_LZW(final_LZW, s_bit_width)
+    waiting = encode_Hy(final_LZW, s_bit_width)
     second_b = b''
     #second_b += int.to_bytes(s_bit_width, 1, byteorder='big')
     second_b += kdict[s_bit_width]
@@ -402,7 +402,7 @@ def LZ_W(file, count):
     f.close()
     return message, different_dict
 
-def encode_LZW(final_LST, bitwidth):
+def encode_Hy(final_LST, bitwidth):
     final_hy = []
     for final_num in final_LST:
         ret_lst = []
@@ -529,9 +529,9 @@ def file_uncompress(file78, file77, fileW, fileHu, fileHy, out_file):
     Hy_decompress_one = Huffman_decompress(Hy_filedata, Hy_filesize)
     symbol_lst, s_width= uncompress_hy(Hy_decompress_one)
     Hy_decompress_two = decode_LZW(symbol_lst, s_width)
-    Huf_decode = uncompress_LZW({}, Hy_decompress_two)
+    Hy_decode = uncompress_LZW({}, Hy_decompress_two)
     final_HUF = open(fileHy.split('.')[0] + out_file, 'wb')
-    final_HUF.write(Huf_decode)
+    final_HUF.write(Hy_decode)
     final_HUF.close()
 
     #LZ77
