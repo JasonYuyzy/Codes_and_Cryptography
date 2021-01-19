@@ -1,36 +1,77 @@
 import os
 import sys
+import six
 from typing import Dict, List
 from six import int2byte
 
-# buile the data collection
-node_dict = {}
-ec_dict = {}
-nodes = []
-inverse_dict = {}
 
-# analyze the node of Huffman coding
-class hu_node(object):
-    def __init__(self, value=None, left=None, right=None, father=None):
+class HuffNode(object):
+    def get_wieght(self):
+        raise NotImplementedError(
+            "The Abstract Node Class doesn't define 'get_wieght'")
+    def isleaf(self):
+        raise NotImplementedError(
+            "The Abstract Node Class doesn't define 'isleaf'")
+
+class LeafNode(HuffNode):
+    def __init__(self, value=0, freq=0, ):
+        super(LeafNode, self).__init__()
         self.value = value
-        self.left = left
-        self.right = right
-        self.father = father
+        self.wieght = freq
+    def isleaf(self):
+        return True
+    def get_wieght(self):
+        return self.wieght
+    def get_value(self):
+        return self.value
 
-    def build_father(left, right):
-        n = hu_node(value=left.value + right.value, left=left, right=right)
-        left.father = right.father = n
-        return n
+class IntlNode(HuffNode):
+    def __init__(self, left_child=None, right_child=None):
+        super(IntlNode, self).__init__()
+        self.wieght = left_child.get_wieght() + right_child.get_wieght()
+        self.left_child = left_child
+        self.right_child = right_child
+    def isleaf(self):
+        return False
+    def get_wieght(self):
+        return self.wieght
+    def get_left(self):
+        return self.left_child
+    def get_right(self):
+        return self.right_child
 
-    def encode(n):
-        if n.father == None:
-            return b''
-        if n.father.left == n:
-            # left branch '0'
-            return hu_node.encode(n.father) + b'0'
+class HuffTree(object):
+    def __init__(self, flag, value=0, freq=0, left_tree=None, right_tree=None):
+        super(HuffTree, self).__init__()
+        if flag == 0:
+            self.root = LeafNode(value, freq)
         else:
-            # right branch '1'
-            return hu_node.encode(n.father) + b'1'
+            self.root = IntlNode(left_tree.get_root(), right_tree.get_root())
+    def get_root(self):
+        return self.root
+    def get_wieght(self):
+        return self.root.get_wieght()
+    def traverse_huffman_tree(self, root, code, char_freq):
+        if root.isleaf():
+            char_freq[root.get_value()] = code
+            return None
+        else:
+            self.traverse_huffman_tree(root.get_left(), code + '0', char_freq)
+            self.traverse_huffman_tree(root.get_right(), code + '1', char_freq)
+
+
+def buildHuffmanTree(list_hufftrees):
+    while len(list_hufftrees) > 1:
+        list_hufftrees.sort(key=lambda x: x.get_wieght())
+        temp1 = list_hufftrees[0]
+        temp2 = list_hufftrees[1]
+        list_hufftrees = list_hufftrees[2:]
+        newed_hufftree = HuffTree(1, 0, 0, temp1, temp2)
+        list_hufftrees.append(newed_hufftree)
+    return list_hufftrees[0]
+
+
+
 
 def file_uncompress(file, decoder, out_file):
     print("Started decoding:")
@@ -48,86 +89,122 @@ def file_uncompress(file, decoder, out_file):
         unpress_LZ78 = uncompress_LZ78(decode78)
         final_outfile.write(unpress_LZ78.encode(encoding="utf-8"))
         final_outfile.close()
+
     elif decoder == 79: #LZW
         decodeW_d, decodeW_s = LZW_file_decode(file)
         unpress_LZW = uncompress_LZW(decodeW_d, decodeW_s)
         final_outfile.write(unpress_LZW)
         final_outfile.close()
-    else:
-        unpress_Hu = Huf_file_decode(file)
-        final_outfile.write(unpress_Hu.encode(encoding="utf-8"))
+
+    elif decoder == 80: #HUF
+        Huf_file = open(file, 'rb')
+        Huf_file.read(1)
+        Huf_filedata = Huf_file.read()
+        Huf_filesize = Huf_file.tell() - 1
+        Huf_decode = Huffman_decompress(Huf_filedata, Huf_filesize)
+        final_outfile.write(Huf_decode)
+        final_outfile.close()
+
+    else: #HY
+        Hy_file = open(file, 'rb')
+        Hy_file.read(1)
+        Hy_filedata = Hy_file.read()
+        Hy_filesize = Hy_file.tell() - 1
+        Hy_decompress_one = Huffman_decompress(Hy_filedata, Hy_filesize)
+        symbol_lst, s_width = uncompress_hy(Hy_decompress_one)
+        Hy_decompress_two = decode_HY(symbol_lst, s_width)
+        Huf_decode = uncompress_LZW({}, Hy_decompress_two)
+        final_outfile.write(Huf_decode)
         final_outfile.close()
 
     #return os.path.getsize(file78.split('.')[0] + out_file), os.path.getsize(file77.split('.')[0] + out_file), os.path.getsize(fileW.split('.')[0] + out_file)
 
 
-# building the huffman tree
-def D_build_tree(l):
-    if len(l) == 1:
-        return l
-    sorts = sorted(l, key=lambda x: x.value, reverse=False)
-    n = hu_node.build_father(sorts[0], sorts[1])
-    sorts.pop(0)
-    sorts.pop(0)
-    sorts.append(n)
-    return D_build_tree(sorts)
+def Huffman_decompress(filedata, filesize):
+    a1 = filedata[0]
+    a2 = filedata[1]
+    a3 = filedata[2]
+    a4 = filedata[3]
+    j = 0
+    j = j | a1
+    j = j << 8
+    j = j | a2
+    j = j << 8
+    j = j | a3
+    j = j << 8
+    j = j | a4
 
-def D_encode(echo):
-    for x in node_dict.keys():
-        ec_dict[x] = hu_node.encode(node_dict[x])
-        #output the form for testing
-        if echo == True:
-            print(x)
-            print(ec_dict[x])
+    leaf_node_size = j
+    char_freq = {}
+    for i in range(leaf_node_size):
+        c = filedata[4 + i * 5 + 0]
+        a1 = filedata[4 + i * 5 + 1]
+        a2 = filedata[4 + i * 5 + 2]
+        a3 = filedata[4 + i * 5 + 3]
+        a4 = filedata[4 + i * 5 + 4]
+        j = 0
+        j = j | a1
+        j = j << 8
+        j = j | a2
+        j = j << 8
+        j = j | a3
+        j = j << 8
+        j = j | a4
+        char_freq[c] = j
 
-def Huf_file_decode(file):
-    f = open(file, 'rb')
-    # pop one byte
-    f.read(1)
-    d_of = os.path.getsize(file)
-    # get the branch number
-    count = int.from_bytes(f.read(2), byteorder='big')
-    # get the byte width
-    bit_width = int.from_bytes(f.read(1), byteorder='big')
-    i = 0
-    de_dict = {}
-    # analyze the head
-    while i < count:
-        key = f.read(1)
-        value = int.from_bytes(f.read(bit_width), byteorder='big')
-        de_dict[key] = value
-        i = i + 1
-    for x in de_dict.keys():
-        node_dict[x] = hu_node(de_dict[x])
-        nodes.append(node_dict[x])
-    # rebuild the tree
-    tree = D_build_tree(nodes)
-    # rebuild the form
-    D_encode(False)
-    # build the reverse dictionary
-    for x in ec_dict.keys():
-        inverse_dict[ec_dict[x]] = x
-    i = f.tell()
-    data = b''
-    out_text = ''
-    # start decoding
-    while i < d_of:
-        raw = int.from_bytes(f.read(1), byteorder='big')
-        i = i + 1
-        j = 8
-        while j > 0:
-            if (raw >> (j - 1)) & 1 == 1:
-                data = data + b'1'
-                raw = raw & (~(1 << (j - 1)))
+    list_hufftrees = []
+    for x in char_freq.keys():
+        tem = HuffTree(0, x, char_freq[x], None, None)
+        list_hufftrees.append(tem)
+    tem = buildHuffmanTree(list_hufftrees)
+    tem.traverse_huffman_tree(tem.get_root(), '', char_freq)
+    output = b''
+    code = ''
+    currnode = tem.get_root()
+    for x in range(leaf_node_size * 5 + 4, filesize):
+        c = filedata[x]
+        for i in range(8):
+            if c & 128:
+                code = code + '1'
             else:
-                data = data + b'0'
-                raw = raw & (~(1 << (j - 1)))
-            if inverse_dict.get(data, 0) != 0:
-                out_text += inverse_dict[data].decode()
-                data = b''
-            j = j - 1
-    f.close()
-    return out_text
+                code = code + '0'
+            c = c << 1
+        while len(code) > 24:
+            if currnode.isleaf():
+                tem_byte = six.int2byte(currnode.get_value())
+                output += tem_byte
+                currnode = tem.get_root()
+
+            if code[0] == '1':
+                currnode = currnode.get_right()
+            else:
+                currnode = currnode.get_left()
+            code = code[1:]
+
+    sub_code = code[-16:-8]
+    last_length = 0
+    for i in range(8):
+        last_length = last_length << 1
+        if sub_code[i] == '1':
+            last_length = last_length | 1
+    code = code[:-16] + code[-8:-8 + last_length]
+
+    while len(code) > 0:
+        if currnode.isleaf():
+            tem_byte = six.int2byte(currnode.get_value())
+            output += tem_byte
+            currnode = tem.get_root()
+        if code[0] == '1':
+            currnode = currnode.get_right()
+        else:
+            currnode = currnode.get_left()
+        code = code[1:]
+    if currnode.isleaf():
+        tem_byte = six.int2byte(currnode.get_value())
+        output += tem_byte
+        currnode = tem.get_root()
+
+    return output
 
 
 def LZW_file_decode(file):
@@ -194,6 +271,25 @@ def uncompress_LZW(decodeW_d, decodeW_s):
             message += p_c
 
     return message
+
+
+def uncompress_hy(Hy_decompress):
+    ORIGINAL_CDICT = dict(zip((int2byte(x) for x in range(256)), range(256)))
+    odict: Dict[bytes, int] = ORIGINAL_CDICT.copy()
+    s_bit_width = Hy_decompress[0]
+    symbol_lst = list()
+    for i in range(1, len(Hy_decompress), s_bit_width):
+        symbol_lst.append([Hy_decompress[i], Hy_decompress[i+1]])
+    return symbol_lst, s_bit_width
+
+def decode_HY(symbol_lst, s_width):
+    lst = list()
+    for symbol_group in symbol_lst:
+        symbol = 0
+        for i in range(s_width):
+            symbol += symbol_group[i]*(255**i)
+        lst.append(symbol)
+    return lst
 
 
 def LZ77_file_decode(file):
