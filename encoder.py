@@ -80,66 +80,10 @@ def file_compress(file):
 
 # compressing with Huffman
     Huf_com = huffman_compress(Huf_data, Huf_size)
-    HUF = open("test_compare/md_hu.lz", 'wb')
-    HUF.write(Huf_com)
-    HUF.close()
 
 #compressing with LZW
-    LZW = open("compare_file/md_W.lz", 'wb')
-    have_dict = 0
-    dict_num = list()
-    key = list()
-    final_LZW, d_dict = LZ_W(file, count)
+    final_LZW = LZ_W(file, count)
     LZW_com = b''
-    #waiting list for changing the extra dict(if the char is not appear in the dict)
-    if d_dict != {}:
-        have_dict = 1
-        for d_key in d_dict:
-            key.append(d_key)
-            dict_num.append(d_dict[d_key])
-
-        #changing the dictionary bit width to optimize the size
-        head_DN = max(dict_num)
-        #print("head_DN:", head_DN)
-        if head_DN > 255:
-            DN_bit_width = 2
-            if head_DN > 65535:
-                DN_bit_width = 3
-                if head_DN > 16777215:
-                    DN_bit_width = 4
-        else:
-            DN_bit_width = 1
-
-        dict_char_len = sum(len(d_c_l) for d_c_l in key)
-        dict_length = len(dict_num) * DN_bit_width + dict_char_len
-        #changing the bit width of the total length of the extra dictionary
-        if dict_length > 255:
-            DL_bit_width = 2
-            if dict_length > 65535:
-                DL_bit_width = 3
-                if dict_length > 16777215:
-                    DL_bit_width = 4
-        else:
-            DL_bit_width = 1
-        #record whether have the extra dictionary (have)
-        LZW.write(int.to_bytes(have_dict, 1, byteorder='big'))
-        #record the coding ditionary number bit width
-        LZW.write(int.to_bytes(DN_bit_width, 1, byteorder='big'))
-        # record the coding ditionary length bit width
-        LZW.wrtie(int.to_bytes(DL_bit_width, 1, byteorder='big'))
-        #record the totally bit length
-        LZW.wrtie(int.to_bytes(dict_length, DL_bit_width, byteorder='big'))
-        #recording the extra dictionary
-        for num in range(len(key)):
-            ######################write in coder#######################
-            LZW.write(key[num].encode(encoding="ascii"))
-            #LZW.write(key[num].encode(encoding="utf-8"))
-            LZW.write(int.to_bytes(dict_num[num], DN_bit_width, byteorder='big'))
-    else:
-        # record whether have the extra dictionary (have)
-        #LZW.write(int.to_bytes(have_dict, 1, byteorder='big'))
-        LZW_com += int.to_bytes(have_dict, 1, byteorder='big')
-
     # changing the symbol bit width to optimized the size
     head_W = max(final_LZW)
     #print("head_W:", head_W)
@@ -152,16 +96,11 @@ def file_compress(file):
     else:
         s_bit_width = 1
     #record the symbol bit width
-    #print("S_BIT:", s_bit_width)
-    #LZW.write(int.to_bytes(s_bit_width, 1, byteorder='big'))
     LZW_com += int.to_bytes(s_bit_width, 1, byteorder='big')
     #record the symbol into byte
     for final_num in final_LZW:
-        #LZW.write(int.to_bytes(final_num, s_bit_width, byteorder='big'))
         LZW_com += int.to_bytes(final_num, s_bit_width, byteorder='big')
 
-    LZW.write(LZW_com)
-    LZW.close()
 
 # compressing with the hybrid Huffman-LZW
     if head_W > 255:
@@ -188,7 +127,6 @@ def file_compress(file):
     if count != len(prepare):
         count = len(prepare)
     final = LZ_77(prepare, count)
-    LZ77 = open("compare_file/md_77.lz", "wb")
     pointer, length, word = [], [], []
     LZ77_com = b''
     for message in final:
@@ -198,8 +136,6 @@ def file_compress(file):
 
     pointer_h = max(pointer)
     length_h = max(length)
-    #print("pointer head for LZ77:", pointer_h)
-    #print("length head for LZ77:", length_h)
     # change the bit width to optimized the size
     if pointer_h > 255:
         p_bit_width = 2
@@ -219,83 +155,30 @@ def file_compress(file):
     else:
         l_bit_width = 1
 
-    #LZ77.write(int.to_bytes(l_bit_width, 1, byteorder='big'))
-    #LZ77.write(int.to_bytes(p_bit_width, 1, byteorder='big'))
     LZ77_com += int.to_bytes(l_bit_width, 1, byteorder='big')
     LZ77_com += int.to_bytes(p_bit_width, 1, byteorder='big')
 
     for num in range(len(pointer)):
         ######################write in coder#######################
-        #LZ77.write(word[num].encode(encoding="ascii"))
         LZ77_com += word[num].encode(encoding="ascii")
-        #LZ77.write(word[num].encode(encoding="utf-8"))
-        #LZ77.write(int.to_bytes(length[num], l_bit_width, byteorder='big'))
-        #LZ77.write(int.to_bytes(pointer[num], p_bit_width, byteorder='big'))
         LZ77_com += int.to_bytes(length[num], l_bit_width, byteorder='big')
         LZ77_com += int.to_bytes(pointer[num], p_bit_width, byteorder='big')
 
-    LZ77.write(LZ77_com)
-    LZ77.close()
 
-#compressing with the LZ78
-    pack = LZ_78(prepare)
-    LZ78 = open("compare_file/md_78.lz", "wb")
-    pointer, word = [], []
-    LZ78_com = b''
-    for d in pack:
-        pointer.append(d[0])
-        word.append(d[1])
-    head_78 = max(pointer)
-    #print("pointer head for LZ78:", head_78)
-    # change the bit width to optimized the size
-    if head_78 > 255:
-        bit_width_78 = 2
-        if head_78 > 65535:
-            bit_width_78 = 3
-            if head_78 > 16777215:
-                bit_width_78 = 4
-    else:
-        bit_width_78 = 1
-
-    #LZ78.write(int.to_bytes(bit_width_78, 1, byteorder='big'))
-    LZ78_com += int.to_bytes(bit_width_78, 1, byteorder='big')
-    for num in range(len(pointer)):
-        if word[num] == '':
-            #LZ78.write(b'')
-            LZ78_com += b''
-            #print(pointer[num], word[num].encode())
-        else:
-            ######################write in coder#######################
-            #LZ78.write(word[num].encode(encoding="ascii"))
-            LZ78_com += word[num].encode(encoding="ascii")
-            #LZ78.write(word[num].encode(encoding="utf-8"))
-        #LZ78.write(int.to_bytes(pointer[num], bit_width_78, byteorder='big'))
-        LZ78_com += int.to_bytes(pointer[num], bit_width_78, byteorder='big')
-        ##############test the difference of the encoding
-        #print(int.to_bytes(pointer[num], bit_width_78, byteorder='big'))
-        #print(pointer[num].to_bytes(length=bit_width_78, byteorder='big'))
-    #exit()
-
-    LZ78.write(LZ78_com)
-    LZ78.close()
 
     f.close()
 
-    Huf_len, LZW_len, LZ78_len, LZ77_len, HY_len = len(Huf_com), len(LZW_com), len(LZ78_com), len(LZ77_com), len(HY)
-    len_lst = min([Huf_len, LZW_len, LZ78_len, LZ77_len, HY_len])
-    #print([Huf_len, LZW_len, LZ78_len, LZ77_len, HY_len])
+    Huf_len, LZW_len, LZ77_len, HY_len = len(Huf_com), len(LZW_com), len(LZ77_com), len(HY)
+    len_lst = min([Huf_len, LZW_len, LZ77_len, HY_len])
     if len_lst == LZ77_len:
         return LZ77_com, 77
-    elif len_lst == LZ78_len:
-        return LZ78_com, 78
     elif len_lst == LZW_len:
         return LZW_com, 79
     elif len_lst == Huf_len:
         return Huf_com, 80
     else:
         return HY, 81
-    #print("SSSSS:", os.path.getsize("compare_file/md_77.lz"), os.path.getsize("compare_file/md_78.lz"), os.path.getsize("compare_file/md_W.lz"))
-    #return os.path.getsize("compare_file/md_77.lz"), os.path.getsize("compare_file/md_78.lz"), os.path.getsize("compare_file/md_W.lz"), os.path.getsize("compare_file/md_hu.lz")
+
 
 def huffman_compress(filedata, filesize):
     char_freq = {}
@@ -374,10 +257,8 @@ def LZ_W(file, count):
     # original dictionary
     ORIGINAL_CDICT = dict(zip((int2byte(x) for x in range(256)), range(256)))
     odict: Dict[bytes, int] = ORIGINAL_CDICT.copy()
-    cdict = odict.copy()
     f = open(file, "rb")
     p_char = b''
-    different_dict = {}
     buff = [b''] * int(count)
     message = []
     dict_num = len(odict)
@@ -390,9 +271,6 @@ def LZ_W(file, count):
             odict[buff[i]] = symbol
             symbol += 1
         i += 1
-    for diff in odict:
-        if diff not in cdict:
-            different_dict.update({diff: odict[diff]})
 
     #encoding the main text
     for c_char in buff:
@@ -407,7 +285,7 @@ def LZ_W(file, count):
 
     message.append(odict[p_char])
     f.close()
-    return message, different_dict
+    return message
 
 def encode_Hy(number_sequence, bytewidth):
     final_sequence_group = []
@@ -455,44 +333,32 @@ def LZ_77(line, count):
         length = 0
         if pointer == len(message):
             break
-    #print(compressed_message)
     return compressed_message
 
 def LZ_78(line):
     tree_dict, m_len, i = {}, len(line), 0
     #encoding the main text
     while i < m_len:
-        #print(len(tree_dict))
         # case I
         if line[i] not in tree_dict.keys():
-            #print("I:", tree_dict.get(line[i]))
-            #print("I:", line[i])
             yield (0, line[i])
             tree_dict[line[i]] = len(tree_dict) + 1
             i += 1
         # case III
         elif i == m_len - 1:
             yield (tree_dict.get(line[i]), '')
-            #print("III:", tree_dict.get(line[i]))
-            #print("III:", line[i])
             i += 1
         else:
             for j in range(i + 1, m_len):
                 # case II
                 if line[i:j + 1] not in tree_dict.keys():
                     yield (tree_dict.get(line[i:j]), line[j])
-                    #print("II:", tree_dict.get(line[i:j]))
-                    #print("II:", line[i:j])
-                    #print("II:", line[j])
                     tree_dict[line[i:j + 1]] = len(tree_dict) + 1
                     i = j + 1
                     break
                 # case III
                 elif j == m_len - 1:
                     yield (tree_dict.get(line[i:j + 1]), '')
-                    #print("III2:", tree_dict.get(line[i:j+1]))
-                    #print("III2:", line[i:j+1])
-                    #print("III2:", line[j])
                     i = j + 1
 
 def main():
@@ -509,10 +375,6 @@ def main():
     smallest_file.write(final_com)
     smallest_file.close()
 
-
-    #print ("LZ78 encode size:", esize_78,'\n',"LZ77 encode size:", esize_77,'\n',"LZ_W encode size:", esize_W,'\n')
-    #dsize_78, dsize_77, dsize_W = file_uncompress("md_78.lz", "md_77.lz", "md_W.lz", output_name)
-    #print("LZ78 decode size:",dsize_78,'\n',"LZ77 decode size:",dsize_77, '\n',"LZ_W decode size:", dsize_W)
 
 if __name__ == "__main__":
     main()
