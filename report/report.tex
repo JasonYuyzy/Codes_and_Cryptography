@@ -15,7 +15,7 @@
 \maketitle
 \section[1]{\Large Part one: Compression}
 \begin{enumerate}
-\normalsize\item[1)]{Number Adaptive Encoding with 'big'}
+\normalsize\item[1)]{Number Encoding Int to Byte}
 \begin{spacing}{1.5}
 \normalsize\indent\setlength{\parindent}{2em}As the LZ series and Huffman are all cumming out with the number sequence. And to prevent to write the number to the zip file directly. I Use the function $int.to_bytes(number, write_in_length, byteorder="big")$ to encode the int sequence into the certain bytes length to reduce the length waste, such as encoding the number \textbf{234} into byte b'\verb|\|xea', as the write in byte width is 1. Which greatly help shorten compressed number.
 \end{spacing}
@@ -25,7 +25,7 @@
 \normalsize\indent\setlength{\parindent}{2em}Base on the first idea. The different int number has the different length of the encoding while write into the \textbf{.lz} file. I found that the length requirements are as follow:
 \newline
 \newline
-\begin{tabular}{|l|c|r|}
+\begin{tabular}{|c|c|c|}
 \hline
 $255<int<=65535$&$65535<int<=16777215$&$16777215<int$\\
 \hline
@@ -36,13 +36,48 @@ width 2&width 3&width 4\\
 By finding the biggest int number to decide which width is fix for encoding to reduce the compressing space.
 \end{spacing}
 
-\normalsize\item[3)]{Length Adaptive Encoding}
+\normalsize\item[3)]{Hybrid Compressing}
 \begin{spacing}{1.5}
-\normalsize\indent\setlength{\parindent}{2em}
+\normalsize\indent\setlength{\parindent}{2em}Different compression algorithms have different compression effects. Thus, I implement 5 algorithms (methods) LZ-77, LZ-78, LZW, Huffman and Hybrid LZW-Huffman. Base on their compression result to chose the final compression method. The advantages of each algorithm are shown below:
+\newline\normalsize a) LZ-77:   The LZ-77 is a dictionary-based algorithm that encodes long strings (also known as phrases) into short tokens, and replaces phrases in the dictionary with small tokens to achieve the purpose of compression. Which means it compresses data by replacing long strings of repeated occurrences in the data with small symbols. That is it can have a high performance when compressing the long repeat text than other algorithms.
+\newline\normalsize b) Huffman:   Each letter in the text file will be encode into a set of binary arrays and the length of the arrays depends on the frequency (weight) of the  letter in the text file. Each of the binary array was compute from the full binary tree of Huffman tree. Each node corresponds to a letter and the weight of the node is the letter's frequency in the text file. So, this algorithm is different from the others. The Huffman coding is not rely on the order of the letter appear in the text file. Thus, when compressing the small text file or some disorganized text file can have a better performance than others.
+\newline\normalsize c) LZW:   Which called list compression algorithm. In this algorithm, a dictionary of the string will build at first and update the new string with a value to represent. Which the value is a number an it is related to the position of the string in the text file. And write the number into the compressed file. If the string appears again, it can be replaced by a number (the correspond value in the dictionary) representing it. And the dictionary will not write into the compressed file. In this algorithm, I setup an original dictionary for encoding and decoding (key and value swap position) by using the \textbf{in2byte()} function in \textbf{six} package. This algorithm only need to write the number into the compressed file and no need to store the dictionary. Which can make a high performance in long text file.
+\newline Thus, based on the advantage behind (Hybrid LZW-Huffman algorithm will be mentioned as an idea). The when compressing different kinds of text file, it can first compress by all the algorithm and compare them to choose a shortest one and finished the compression.
+\end{spacing}
+
+\normalsize\item[4)]{Hybrid Algorithm}
+\begin{spacing}{1.5}
+\normalsize\indent\setlength{\parindent}{2em}As I mentioned in section 3). I found a hybrid algorithm called LZW-Huffman which combine the LZW and Huffman together to develop the compression performance. As the LZW encode the text file and save with sequences of number. Thus the number sequence can be replaced by a corresponding character from the dictionary which create by the \textbf{in2byte()} function in \textbf{six} package. But the limited is the number in the number sequence which encoded by the LZW should less than 255. So, to solve this problem. Firstly, find out the biggest number in the number sequence, and then compare it with $255$, $255^{2}$, $255^{3}$  and  $255^{4}$. To define whether the number should be separate into one, two, three or four groups. The checklist and corresponding groups are shown below:
+\end{spacing}
+
+\begin{figure}[H]
+\centering
+\label{Fig.sub.1}\includegraphics[height=0.12\textheight,width=0.45\textwidth]{evidence/Hy_example.png}
+\caption{the function to dealing the number sequence}
+\label{Fig.main}
+\end{figure}
+
+\normalsize The \textbf{num} is the biggest number in the number sequence.
+\newline
+\begin{tabular}{|c||c|c|c|c|}
+\hline
+Conditions&$0<num<=255$&$255<num<=255^{2}$&$255^{2}<num<=255^{3}$&...\\
+\hline
+byte width&1&2&3&...\\
+\hline
+group e.g. number 240&$[240]$&$[240,0]$&$[240,0,0]$&...\\
+\hline
+group e.g. number 370&None&$[115,1]$&$[115,1,0]$&...\\
+\hline
+group e.g. number 65770&None&None&$[235,2,1]$&...\\
+\hline
+\end{tabular}
+\newline
+\begin{spacing}{1.5}
+\newline\normalsize\indent\setlength{\parindent}{2em} After encoding the number sequence with function \textbf{encode\_Hy()} . Because each groups of number can have can get a corresponding character from the dictionary, the number can be transform into a character and combine together as a string instead of the number sequence. Then compress by the Huffman algorithm. As I mention in the 1st and 2nd idea, the original number sequence from LZW will be encoded with the same byte length depend on the size of the biggest number in the number sequence. Which has the same byte width as encoding the number and transfer to corresponding character. But it can be compress again with Huffman algorithm after the transform. Which can help to further compress the text file.
 
 
 \end{spacing}
-
 
 \end{enumerate}
 
