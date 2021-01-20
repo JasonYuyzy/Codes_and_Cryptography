@@ -409,15 +409,15 @@ def LZ_W(file, count):
     f.close()
     return message, different_dict
 
-def encode_Hy(final_LST, bitwidth):
-    final_hy = []
-    for final_num in final_LST:
-        ret_lst = []
-        for i in range(bitwidth):
-            check = int(final_num/(255**i))%255
-            ret_lst.append(check)
-        final_hy.append(ret_lst)
-    return final_hy
+def encode_Hy(number_sequence, bytewidth):
+    final_sequence_group = []
+    for num in number_sequence:
+        group = []
+        for i in range(bytewidth):
+            check = int(num/(255**i))%255
+            group.append(check)
+        final_sequence_group.append(group)
+    return final_sequence_group
 
 def LZ_77(line, count):
     length = 0
