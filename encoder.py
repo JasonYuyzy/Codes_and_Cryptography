@@ -77,107 +77,152 @@ def file_compress(file):
     Huf_data = f.read()
     Huf_size = f.tell()
     prepare = bytes.decode(Huf_data)
-
+    if count == 0:
+        Nothing = b''
+        return Nothing, 0
 # compressing with Huffman
-    Huf_com = huffman_compress(Huf_data, Huf_size)
-
+    try:
+        Huf_com = huffman_compress(Huf_data, Huf_size)
+    except:
+        Huf_com = b''
 #compressing with LZW
-    final_LZW = LZ_W(file, count)
-    LZW_com = b''
-    # changing the symbol bit width to optimized the size
-    head_W = max(final_LZW)
-    #print("head_W:", head_W)
-    if head_W > 255:
-        s_bit_width = 2
-        if head_W > 65535:
-            s_bit_width = 3
-            if head_W > 16777215:
-                s_bit_width = 4
-    else:
-        s_bit_width = 1
-    #record the symbol bit width
-    LZW_com += int.to_bytes(s_bit_width, 1, byteorder='big')
-    #record the symbol into byte
-    for final_num in final_LZW:
-        LZW_com += int.to_bytes(final_num, s_bit_width, byteorder='big')
+    try:
+        final_LZW = LZ_W(file, count)
+        LZW_com = b''
+        # changing the symbol bit width to optimized the size
+        head_W = max(final_LZW)
+        #print("head_W:", head_W)
+        if head_W > 255:
+            s_bit_width = 2
+            if head_W > 65535:
+                s_bit_width = 3
+                if head_W > 16777215:
+                    s_bit_width = 4
+        else:
+            s_bit_width = 1
+        #record the symbol bit width
+        LZW_com += int.to_bytes(s_bit_width, 1, byteorder='big')
+        #record the symbol into byte
+        for final_num in final_LZW:
+            LZW_com += int.to_bytes(final_num, s_bit_width, byteorder='big')
 
 
-# compressing with the hybrid Huffman-LZW
-    if head_W > 255:
-        s_bit_width = 2
-        if head_W > 255 ** 2:
-            s_bit_width = 3
-            if head_W > 255 ** 3:
-                s_bit_width = 4
-    else:
-        s_bit_width = 1
-    ORIGINAL_KDICT = [int2byte(x) for x in range(256)]
-    kdict: List[bytes] = ORIGINAL_KDICT.copy()
-    waiting = encode_Hy(final_LZW, s_bit_width)
-    second_b = b''
-    second_b += kdict[s_bit_width]
-    for w in waiting:
-        for i in range(s_bit_width):
-            second_b += kdict[w[i]]
-    HY = huffman_compress(second_b, len(second_b))
+    # compressing with the hybrid Huffman-LZW
+        if head_W > 255:
+            s_bit_width = 2
+            if head_W > 255 ** 2:
+                s_bit_width = 3
+                if head_W > 255 ** 3:
+                    s_bit_width = 4
+        else:
+            s_bit_width = 1
+        ORIGINAL_KDICT = [int2byte(x) for x in range(256)]
+        kdict: List[bytes] = ORIGINAL_KDICT.copy()
+        waiting = encode_Hy(final_LZW, s_bit_width)
+        second_WH = b''
+        second_WH += kdict[s_bit_width]
+        for w in waiting:
+            for i in range(s_bit_width):
+                second_WH += kdict[w[i]]
+        WH = huffman_compress(second_WH, len(second_WH))
+    except:
+        LZW_com = b''
+        WH = b''
 
 
 
 #compressing with the LZ77
-    if count != len(prepare):
-        count = len(prepare)
-    final = LZ_77(prepare, count)
-    pointer, length, word = [], [], []
-    LZ77_com = b''
-    for message in final:
-        pointer.append(message[0])
-        length.append(message[1])
-        word.append(message[2])
+    try:
+        if count != len(prepare):
+            count = len(prepare)
+        final = LZ_77(prepare, count)
+        pointer, length, word = [], [], []
+        LZ77_com = b''
+        for message in final:
+            pointer.append(message[0])
+            length.append(message[1])
+            word.append(message[2])
 
-    pointer_h = max(pointer)
-    length_h = max(length)
-    # change the bit width to optimized the size
-    if pointer_h > 255:
-        p_bit_width = 2
-        if pointer_h > 65535:
-            p_bit_width = 3
-            if pointer_h > 16777215:
-                p_bit_width = 4
-    else:
-        p_bit_width = 1
-    # change the bit width to optimized the size
-    if length_h > 255:
-        l_bit_width = 2
-        if length_h > 65535:
-            l_bit_width = 3
-            if length_h > 16777215:
-                l_bit_width = 4
-    else:
-        l_bit_width = 1
+        pointer_h = max(pointer)
+        length_h = max(length)
+        # change the bit width to optimized the size
+        if pointer_h > 255:
+            p_bit_width = 2
+            if pointer_h > 65535:
+                p_bit_width = 3
+                if pointer_h > 16777215:
+                    p_bit_width = 4
+        else:
+            p_bit_width = 1
+        # change the bit width to optimized the size
+        if length_h > 255:
+            l_bit_width = 2
+            if length_h > 65535:
+                l_bit_width = 3
+                if length_h > 16777215:
+                    l_bit_width = 4
+        else:
+            l_bit_width = 1
 
-    LZ77_com += int.to_bytes(l_bit_width, 1, byteorder='big')
-    LZ77_com += int.to_bytes(p_bit_width, 1, byteorder='big')
+        LZ77_com += int.to_bytes(l_bit_width, 1, byteorder='big')
+        LZ77_com += int.to_bytes(p_bit_width, 1, byteorder='big')
 
-    for num in range(len(pointer)):
-        ######################write in coder#######################
-        LZ77_com += word[num].encode(encoding="ascii")
-        LZ77_com += int.to_bytes(length[num], l_bit_width, byteorder='big')
-        LZ77_com += int.to_bytes(pointer[num], p_bit_width, byteorder='big')
+        for num in range(len(pointer)):
+            ######################write in coder#######################
+            LZ77_com += word[num].encode(encoding="ascii")
+            LZ77_com += int.to_bytes(length[num], l_bit_width, byteorder='big')
+            LZ77_com += int.to_bytes(pointer[num], p_bit_width, byteorder='big')
+    except:
+        LZ77_com = b''
+#compressing with the LZ77-Huffman
+    try:
+        if pointer_h > 255:
+            p_bit_width = 2
+            if pointer_h > 255**2:
+                p_bit_width = 3
+                if pointer_h > 255**3:
+                    p_bit_width = 4
+        else:
+            p_bit_width = 1
 
+        if length_h > 255:
+            l_bit_width = 2
+            if length_h > 255**2:
+                l_bit_width = 3
+                if length_h > 255**3:
+                    l_bit_width = 4
+        else:
+            l_bit_width = 1
 
+        waiting_pointer = encode_Hy(pointer, p_bit_width)
+        waiting_length = encode_Hy(length, l_bit_width)
+        second_77H = b''
+        second_77H += kdict[p_bit_width]
+        second_77H += kdict[l_bit_width]
+        for w in range(len(waiting_pointer)):
+            second_77H += word[w].encode(encoding="utf-8")
+            for i in range(p_bit_width):
+                second_77H += kdict[waiting_pointer[w][i]]
+            for j in range(l_bit_width):
+                second_77H += kdict[waiting_length[w][j]]
+        H77 = huffman_compress(second_77H, len(second_77H))
+    except:
+        H77 = b''
 
     f.close()
 
-    Huf_len, LZW_len, LZ77_len, HY_len = len(Huf_com), len(LZW_com), len(LZ77_com), len(HY)
-    len_lst = min([Huf_len, LZW_len, LZ77_len, HY_len])
+    Huf_len, LZW_len, LZ77_len, WH_len, H77_len = len(Huf_com), len(LZW_com), len(LZ77_com), len(WH), len(H77)
+    len_lst = min([Huf_len, LZW_len, LZ77_len, WH_len, H77_len])
     if len_lst == LZ77_len:
         return LZ77_com, 77
     elif len_lst == LZW_len:
         return LZW_com, 79
     elif len_lst == Huf_len:
         return Huf_com, 80
+    elif len_lst == WH_len:
+        return WH, 81
     else:
-        return HY, 81
+        return H77, 82
 
 
 def huffman_compress(filedata, filesize):
@@ -335,31 +380,6 @@ def LZ_77(line, count):
             break
     return compressed_message
 
-def LZ_78(line):
-    tree_dict, m_len, i = {}, len(line), 0
-    #encoding the main text
-    while i < m_len:
-        # case I
-        if line[i] not in tree_dict.keys():
-            yield (0, line[i])
-            tree_dict[line[i]] = len(tree_dict) + 1
-            i += 1
-        # case III
-        elif i == m_len - 1:
-            yield (tree_dict.get(line[i]), '')
-            i += 1
-        else:
-            for j in range(i + 1, m_len):
-                # case II
-                if line[i:j + 1] not in tree_dict.keys():
-                    yield (tree_dict.get(line[i:j]), line[j])
-                    tree_dict[line[i:j + 1]] = len(tree_dict) + 1
-                    i = j + 1
-                    break
-                # case III
-                elif j == m_len - 1:
-                    yield (tree_dict.get(line[i:j + 1]), '')
-                    i = j + 1
 
 def main():
     #write in byte width
@@ -371,7 +391,10 @@ def main():
     smallest_file = open(output_name + '.lz', 'wb')
     # compressing and get the final compress file
     final_com, num = file_compress(file_name)
-    smallest_file.write(int.to_bytes(num, byte_width, byteorder='big'))
+    if num == 0:
+        smallest_file.write(b'')
+    else:
+        smallest_file.write(int.to_bytes(num, byte_width, byteorder='big'))
     smallest_file.write(final_com)
     smallest_file.close()
 

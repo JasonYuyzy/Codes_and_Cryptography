@@ -75,8 +75,11 @@ def file_uncompress(file, decoder, out_file):
     print("Started decoding:")
     final_outfile = open(out_file, 'wb')
 
+    if decoder == 0:
+        final_outfile.write(b'')
+        final_outfile.close()
 
-    if decoder == 77: #LZ77
+    elif decoder == 77: #LZ77
         decode77 = LZ77_file_decode(file)
         unpress_LZ77 = uncompress_LZ77(decode77)
         final_outfile.write(unpress_LZ77.encode(encoding="ascii"))
@@ -97,16 +100,30 @@ def file_uncompress(file, decoder, out_file):
         final_outfile.write(Huf_decode)
         final_outfile.close()
 
-    else: #HY
-        Hy_file = open(file, 'rb')
-        Hy_file.read(1)
-        Hy_filedata = Hy_file.read()
-        Hy_filesize = Hy_file.tell() - 1
-        Hy_decompress_one = Huffman_decompress(Hy_filedata, Hy_filesize)
-        symbol_lst, s_width = uncompress_hy(Hy_decompress_one)
-        Hy_decompress_two = decode_HY(symbol_lst, s_width)
-        Huf_decode = uncompress_LZW(Hy_decompress_two)
-        final_outfile.write(Huf_decode)
+    elif decoder == 81: #HY
+        WH_file = open(file, 'rb')
+        WH_file.read(1)
+        WH_filedata = WH_file.read()
+        WH_filesize = WH_file.tell() - 1
+        WH_decompress_one = Huffman_decompress(WH_filedata, WH_filesize)
+        symbol_lst, s_width = reading_string_WH(WH_decompress_one)
+        WH_decompress_two = decode_HY(symbol_lst, s_width)
+        WH_decode = uncompress_LZW(WH_decompress_two)
+        final_outfile.write(WH_decode)
+        final_outfile.close()
+
+    else: #77H
+        Hy77_file = open(file, 'rb')
+        Hy77_file.read(1)
+        Hy77_filedata = Hy77_file.read()
+        Hy77_filesize = Hy77_file.tell() - 1
+        Hy77_decompress_one = Huffman_decompress(Hy77_filedata, Hy77_filesize)
+        word_lst, pointer_lst, length_lst, pointer_width, length_width = read_string_77H(Hy77_decompress_one)
+        p_lst = decode_HY(pointer_lst, pointer_width)
+        l_lst = decode_HY(length_lst, length_width)
+        decode77H = H77_decode(word_lst, p_lst, l_lst)
+        unpress_77H = uncompress_LZ77(decode77H)
+        final_outfile.write(unpress_77H.encode(encoding="ascii"))
         final_outfile.close()
 
     #return os.path.getsize(file78.split('.')[0] + out_file), os.path.getsize(file77.split('.')[0] + out_file), os.path.getsize(fileW.split('.')[0] + out_file)
@@ -216,8 +233,6 @@ def LZW_file_decode(file):
     return symbol
 
 def uncompress_LZW(decodeW_s):
-    # original dictionary
-    ORIGINAL_CDICT = dict(zip((int2byte(x) for x in range(256)), range(256)))
     # reverse dictionary
     ORIGINAL_KDICT = [int2byte(x) for x in range(256)]
     kdict: List[bytes] = ORIGINAL_KDICT.copy()
@@ -242,13 +257,13 @@ def uncompress_LZW(decodeW_s):
     return message
 
 
-def uncompress_hy(Hy_decompress):
-    byte_width = Hy_decompress[0]
+def reading_string_WH(WH_decompress_one):
+    byte_width = WH_decompress_one[0]
     group_lst = list()
-    for i in range(1, len(Hy_decompress), byte_width):
+    for i in range(1, len(WH_decompress_one), byte_width):
         group = []
         for x in range(byte_width):
-            group.append(Hy_decompress[i + x])
+            group.append(WH_decompress_one[i + x])
         group_lst.append(group)
     return group_lst, byte_width
 
@@ -293,11 +308,44 @@ def uncompress_LZ77(message):
         de_msg += s[2]
     return de_msg
 
+
+def read_string_77H(Hy77_decompress_one):
+    ORIGINAL_KDICT = [int2byte(x) for x in range(256)]
+    kdict: List[bytes] = ORIGINAL_KDICT.copy()
+    word_lst = list()
+    pointer_lst = list()
+    length_lst = list()
+
+    pointer_width = Hy77_decompress_one[0]
+    length_width = Hy77_decompress_one[1]
+
+    for x in range(2, len(Hy77_decompress_one), 1+pointer_width+length_width):
+        word_lst.append(kdict[Hy77_decompress_one[x]].decode(encoding="utf-8"))
+        pointer_group = []
+        length_group = []
+        for i in range(pointer_width):
+            pointer_group.append(Hy77_decompress_one[1+x+i])
+        for j in range(length_width):
+            length_group.append(Hy77_decompress_one[1+x+pointer_width+j])
+        pointer_lst.append(pointer_group)
+        length_lst.append(length_group)
+    return word_lst, pointer_lst, length_lst, pointer_width, length_width
+
+def H77_decode(word_lst, p_lst, l_lst):
+    message77H = list()
+    for i in range(len(word_lst)):
+        message77H.append((p_lst[i], l_lst[i], word_lst[i]))
+
+    return message77H
+
 def main():
     byte_width = 1
     out_name = sys.argv[1]
     out_file = open(out_name, 'rb')
-    decoder = int.from_bytes(out_file.read(byte_width), byteorder='big')
+    try:
+        decoder = int.from_bytes(out_file.read(byte_width), byteorder='big')
+    except:
+        decoder = 0
     out_file.close()
     decode_file = out_name.split('.')[0]
     #dsize_78, dsize_77, dsize_W =
