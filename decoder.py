@@ -320,7 +320,7 @@ def read_string_77H(Hy77_decompress_one):
     length_width = Hy77_decompress_one[1]
 
     for x in range(2, len(Hy77_decompress_one), 1+pointer_width+length_width):
-        word_lst.append(kdict[Hy77_decompress_one[x]].decode(encoding="utf-8"))
+        word_lst.append(kdict[Hy77_decompress_one[x]].decode(encoding="ascii"))
         pointer_group = []
         length_group = []
         for i in range(pointer_width):

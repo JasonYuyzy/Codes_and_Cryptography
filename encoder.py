@@ -200,7 +200,7 @@ def file_compress(file):
         second_77H += kdict[p_bit_width]
         second_77H += kdict[l_bit_width]
         for w in range(len(waiting_pointer)):
-            second_77H += word[w].encode(encoding="utf-8")
+            second_77H += word[w].encode(encoding="ascii")
             for i in range(p_bit_width):
                 second_77H += kdict[waiting_pointer[w][i]]
             for j in range(l_bit_width):
