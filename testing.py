@@ -77,6 +77,8 @@ def buildHuffmanTree(list_hufftrees):
 
 #File_name = sys.argv[1]
 def file_compress(file):
+    ORIGINAL_KDICT = [int2byte(x) for x in range(256)]
+    kdict: List[bytes] = ORIGINAL_KDICT.copy()
     #print("Starting encode...")
     f = open(file, "rb")
     count = os.path.getsize(file)
@@ -177,31 +179,14 @@ def file_compress(file):
                 s_bit_width = 4
     else:
         s_bit_width = 1
-    ORIGINAL_KDICT = [int2byte(x) for x in range(256)]
-    kdict: List[bytes] = ORIGINAL_KDICT.copy()
+
     waiting = encode_Hy(final_LZW, s_bit_width)
     second_b = b''
-    #second_b += int.to_bytes(s_bit_width, 1, byteorder='big')
     second_b += kdict[s_bit_width]
-    #second_b += chr(s_bit_width)
-    #for w in waiting:
-        #hybird_one.append(w[0])
-        #hybird_two.append(w[1])
-    #print("ONE:", len(hybird_one))
-    #first mode
-    #for one in hybird_one:
-        #second_b += kdict[one]
-    #for two in hybird_two:
-        #second_b += kdict[two]
-    #second mode
     for w in waiting:
         for i in range(s_bit_width):
             second_b += kdict[w[i]]
-            #second_b += chr(w[i])
-    #filedata = bytes.encode(second_b)
-    #file_szie = len(filedata)
     HY = huffman_compress(second_b, len(second_b))
-    #HY = huffman_compress(filedata, file_szie)
     Hybrid_H_LZW = open("test_compare/md_Hy.lz", "wb")
     Hybrid_H_LZW.write(HY)
     Hybrid_H_LZW.close()
@@ -252,44 +237,44 @@ def file_compress(file):
 
     LZ77.close()
 
-#compressing with the LZ78
-    pack = LZ_78(prepare)
-    LZ78 = open("test_compare/md_78.lz", "wb")
-    pointer, word = [], []
-    for d in pack:
-        pointer.append(d[0])
-        word.append(d[1])
-    head_78 = max(pointer)
-    #print("pointer head for LZ78:", head_78)
-    # change the bit width to optimized the size
-    if head_78 > 255:
-        bit_width_78 = 2
-        if head_78 > 65535:
-            bit_width_78 = 3
-            if head_78 > 16777215:
-                bit_width_78 = 4
+    # Hybrid LZ77-Huffman
+    if pointer_h > 255:
+        p_bit_width = 2
+        if pointer_h > 255**2:
+            p_bit_width = 3
+            if pointer_h > 255**3:
+                p_bit_width = 4
     else:
-        bit_width_78 = 1
+        p_bit_width = 1
 
-    LZ78.write(int.to_bytes(bit_width_78, 1, byteorder='big'))
-    for num in range(len(pointer)):
-        if word[num] == '':
-            LZ78.write(b'')
-            #print(pointer[num], word[num].encode())
-        else:
-            #print(word[num].encode(encoding="utf-8"))
-            LZ78.write(word[num].encode(encoding="utf-8"))
-        LZ78.write(int.to_bytes(pointer[num], bit_width_78, byteorder='big'))
-        ##############test the difference of the encoding
-        #print(int.to_bytes(pointer[num], bit_width_78, byteorder='big'))
-        #print(pointer[num].to_bytes(length=bit_width_78, byteorder='big'))
-    #exit()
+    if length_h > 255:
+        l_bit_width = 2
+        if length_h > 255**2:
+            l_bit_width = 3
+            if length_h > 255**3:
+                l_bit_width = 4
+    else:
+        l_bit_width = 1
 
-    LZ78.close()
+    waiting_pointer = encode_Hy(pointer, p_bit_width)
+    waiting_length = encode_Hy(length, l_bit_width)
+    second_77b = b''
+    second_77b += kdict[p_bit_width]
+    second_77b += kdict[l_bit_width]
+    for w in range(len(waiting_pointer)):
+        second_77b += word[w].encode(encoding="utf-8")
+        for i in range(p_bit_width):
+            second_77b += kdict[waiting_pointer[w][i]]
+        for j in range(l_bit_width):
+            second_77b += kdict[waiting_length[w][j]]
+    H77 = huffman_compress(second_77b, len(second_77b))
+    Hybrid_77H = open("test_compare/md_77H.lz", "wb")
+    Hybrid_77H.write(H77)
+    Hybrid_77H.close()
 
     f.close()
     #print("SSSSS:", os.path.getsize("compare_file/md_77.lz"), os.path.getsize("compare_file/md_78.lz"), os.path.getsize("compare_file/md_W.lz"))
-    return os.path.getsize("test_compare/md_77.lz"), os.path.getsize("test_compare/md_78.lz"), os.path.getsize("test_compare/md_W.lz"), os.path.getsize("test_compare/md_hu.lz"),  os.path.getsize("test_compare/md_Hy.lz")
+    return os.path.getsize("test_compare/md_77H.lz"), os.path.getsize("test_compare/md_77.lz"), os.path.getsize("test_compare/md_W.lz"), os.path.getsize("test_compare/md_hu.lz"),  os.path.getsize("test_compare/md_Hy.lz")
 
 def huffman_compress(filedata, filesize):
     char_freq = {}
@@ -418,17 +403,9 @@ def LZ_77(line, count):
     win = count
     pointer = 0
     message = line
-
     compressed_message = list()  #message temporal storage
     #encoding the main text
     while True:
-
-        #if pointer > 1179:
-            #time.sleep(3)
-            #print("length update:", length, "pointer update:", pointer)
-            #print(message[pointer:pointer+length])
-            #print(match.find(message[pointer:pointer + length + 1]) != -1)
-            #print(first)
 
         if pointer - win < 0:
             match = message[0:pointer]
@@ -439,10 +416,6 @@ def LZ_77(line, count):
                 break
             length += 1
 
-            #if pointer > 1179:
-                #print(message[pointer:pointer + length])
-                #print(match.find(message[pointer:pointer + length + 1]) != -1)
-                #time.sleep(3)
 
         first = match.find(message[pointer:pointer + length])
         if pointer - win > 0:
@@ -457,54 +430,12 @@ def LZ_77(line, count):
             pointer += 1
 
         length = 0
-        #if pointer > 1179:
-            #print(match.find(message[pointer:pointer + length + 1]) != -1)
         if pointer == len(message):
             break
-    #print(compressed_message)
     return compressed_message
 
 
-def LZ_78(line):
-    tree_dict, m_len, i = {}, len(line), 0
-    #encoding the main text
-    while i < m_len:
-        #print(len(tree_dict))
-        # case I
-        if line[i] not in tree_dict.keys():
-            #print("I:", tree_dict.get(line[i]))
-            #print("I:", line[i])
-            yield (0, line[i])
-            tree_dict[line[i]] = len(tree_dict) + 1
-            i += 1
-        # case III
-        elif i == m_len - 1:
-            yield (tree_dict.get(line[i]), '')
-            #print("III:", tree_dict.get(line[i]))
-            #print("III:", line[i])
-            i += 1
-        else:
-            for j in range(i + 1, m_len):
-                # case II
-                if line[i:j + 1] not in tree_dict.keys():
-                    yield (tree_dict.get(line[i:j]), line[j])
-                    #print("II:", tree_dict.get(line[i:j]))
-                    #print("II:", line[i:j])
-                    #print("II:", line[j])
-                    tree_dict[line[i:j + 1]] = len(tree_dict) + 1
-                    i = j + 1
-                    break
-                # case III
-                elif j == m_len - 1:
-                    yield (tree_dict.get(line[i:j + 1]), '')
-                    #print("III2:", tree_dict.get(line[i:j+1]))
-                    #print("III2:", line[i:j+1])
-                    #print("III2:", line[j])
-                    i = j + 1
-
-
-
-def file_uncompress(file78, file77, fileW, fileHu, fileHy, out_file):
+def file_uncompress(file77, fileW, fileHu, fileHy, file77H, out_file):
     print("Started decoding:")
     #Huffman
     Huf_file = open(fileHu, 'rb')
@@ -541,14 +472,22 @@ def file_uncompress(file78, file77, fileW, fileHu, fileHy, out_file):
     final_LZ77.write(unpress_LZ77.encode(encoding="utf-8"))
     final_LZ77.close()
 
-    #LZ78
-    decode78 = LZ78_file_decode(file78)
-    unpress_LZ78 = uncompress_LZ78(decode78)
-    final_LZ78 = open(file78.split('.')[0] + out_file, 'wb')
-    final_LZ78.write(unpress_LZ78.encode(encoding="utf-8"))
-    final_LZ78.close()
+    #Hybrid LZ77-Huffman
+    Hy77_file = open(file77H, 'rb')
+    Hy77_filedata = Hy77_file.read()
+    Hy77_filesize = Hy77_file.tell()
+    Hy77_decompress_one = Huffman_decompress(Hy77_filedata, Hy77_filesize)
+    word_lst, pointer_lst, length_lst, pointer_width, length_width = read_string_77H(Hy77_decompress_one)
+    p_lst = decode_LZW(pointer_lst, pointer_width)
+    l_lst = decode_LZW(length_lst, length_width)
+    decode77H = H77_decode(word_lst, p_lst, l_lst)
+    unpress_77H = uncompress_LZ77(decode77H)
+    final_77H = open(file77H.split('.')[0] + out_file, 'wb')
+    final_77H.write(unpress_77H.encode(encoding="utf-8"))
+    final_77H.close()
 
-    return os.path.getsize(file78.split('.')[0] + out_file), os.path.getsize(file77.split('.')[0] + out_file), os.path.getsize(fileW.split('.')[0] + out_file), os.path.getsize(fileHu.split('.')[0] + out_file), os.path.getsize(fileHy.split('.')[0] + out_file)
+
+    return os.path.getsize(file77H.split('.')[0] + out_file), os.path.getsize(file77.split('.')[0] + out_file), os.path.getsize(fileW.split('.')[0] + out_file), os.path.getsize(fileHu.split('.')[0] + out_file), os.path.getsize(fileHy.split('.')[0] + out_file)
 
 
 def Huffman_decompress(filedata, filesize):
@@ -701,12 +640,13 @@ def uncompress_LZW(decodeW_d, decodeW_s):
 
 
 def uncompress_hy(Hy_decompress):
-    ORIGINAL_CDICT = dict(zip((int2byte(x) for x in range(256)), range(256)))
-    odict: Dict[bytes, int] = ORIGINAL_CDICT.copy()
     s_bit_width = Hy_decompress[0]
     symbol_lst = list()
     for i in range(1, len(Hy_decompress), s_bit_width):
-        symbol_lst.append([Hy_decompress[i], Hy_decompress[i+1]])
+        group = []
+        for x in range(s_bit_width):
+            group.append(Hy_decompress[i+x])
+        symbol_lst.append(group)
     return symbol_lst, s_bit_width
 
 def decode_LZW(symbol_lst, s_width):
@@ -729,7 +669,7 @@ def LZ77_file_decode(file):
     p_b_width = int.from_bytes(f.read(1), byteorder='big')
     message = []
     #start to decode message code of LZ77
-    while i < count:
+    while i < count-2:
         word = f.read(1).decode(encoding="utf-8")
         length = int.from_bytes(f.read(l_b_width), byteorder='big')
         pointer = int.from_bytes(f.read(p_b_width), byteorder='big')
@@ -746,53 +686,34 @@ def uncompress_LZ77(message):
         de_msg += s[2]
     return de_msg
 
+def read_string_77H(Hy77_decompress_one):
+    ORIGINAL_KDICT = [int2byte(x) for x in range(256)]
+    kdict: List[bytes] = ORIGINAL_KDICT.copy()
+    word_lst = list()
+    pointer_lst = list()
+    length_lst = list()
 
-def LZ78_file_decode(file):
-    f = open(file, "rb")
-    i = 0
-    #get the length of the encoded file
-    count = os.path.getsize(file)
-    # read the byte width of length and pointer
-    b_width = int.from_bytes(f.read(1), byteorder='big')
-    i += 1
-    # start to decode message code of LZ78
-    while i < count:
-        #last group of encoded
-        if i > count - b_width - 2:
-            #print("DECIDE:", count - i)
-            if count - i > 2:
-                #drop one more bytes
-                last_w = f.read(1).decode(encoding="utf-8")
-                last_p = int.from_bytes(f.read(b_width), byteorder='big')
-                yield (last_p, last_w)
-                i = i + b_width + 1
-            else:
-                i = i + b_width
-                last_p = int.from_bytes(f.read(b_width), byteorder='big')
-                yield (last_p, '')
-        else:
-            word = f.read(1).decode(encoding="utf-8")
-            pointer = int.from_bytes(f.read(b_width), byteorder='big')
-            yield (pointer, word)
-            i = i + b_width + 1
+    pointer_width = Hy77_decompress_one[0]
+    length_width = Hy77_decompress_one[1]
 
+    for x in range(2, len(Hy77_decompress_one), 1+pointer_width+length_width):
+        word_lst.append(kdict[Hy77_decompress_one[x]].decode(encoding="utf-8"))
+        pointer_group = []
+        length_group = []
+        for i in range(pointer_width):
+            pointer_group.append(Hy77_decompress_one[1+x+i])
+        for j in range(length_width):
+            length_group.append(Hy77_decompress_one[1+x+pointer_width+j])
+        pointer_lst.append(pointer_group)
+        length_lst.append(length_group)
+    return word_lst, pointer_lst, length_lst, pointer_width, length_width
 
-def uncompress_LZ78(packed):
-    #decoding the main text
-    unpacked, tree_dict = '', {}
-    for index, ch in packed:
-        if index == 0:
-            unpacked += ch
-            tree_dict[len(tree_dict) + 1] = ch
-        else:
-            term = tree_dict.get(index) + ch
-            unpacked += term
-            tree_dict[len(tree_dict) + 1] = term
+def H77_decode(word_lst, p_lst, l_lst):
+    message77H = list()
+    for i in range(len(word_lst)):
+        message77H.append((p_lst[i], l_lst[i], word_lst[i]))
 
-    return unpacked
-
-
-
+    return message77H
 
 if __name__ == "__main__":
     node_dict = {}
@@ -803,9 +724,9 @@ if __name__ == "__main__":
     file_name = sys.argv[1]
     input_file = file_name.split('.')
     output_name = '.' + input_file[1]
-    esize_77, esize_78, esize_W, esize_Hu, esize_Hy = file_compress(file_name)
-    print("LZ78 encode size:", esize_78, '\n', "LZ77 encode size:", esize_77, '\n', "LZ_W encode size:", esize_W, '\n', "Huffman encode size:", esize_Hu,  '\n', "Hybrid encode size:", esize_Hy)
+    esize_WH, esize_77, esize_W, esize_Hu, esize_Hy = file_compress(file_name)
+    print("Hybrid 77H encode size:", esize_WH, '\n', "LZ77 encode size:", esize_77, '\n', "LZ_W encode size:", esize_W, '\n', "Huffman encode size:", esize_Hu,  '\n', "Hybrid WH encode size:", esize_Hy)
 
-    dsize_78, dsize_77, dsize_W, dsize_H, dsize_Hy = file_uncompress("test_compare/md_78.lz", "test_compare/md_77.lz",
-                                                  "test_compare/md_W.lz", "test_compare/md_hu.lz", "test_compare/md_Hy.lz", output_name)
-    print("LZ78 decode size:", dsize_78,'\n',"LZ77 decode size:",dsize_77,'\n',"LZ_W decode size:",dsize_W,'\n',"LZ_H decode size:",dsize_H,'\n',"LZ_Hy decode size:",dsize_Hy,'\n')
+    dsize_77H, dsize_77, dsize_W, dsize_H, dsize_Hy = file_uncompress("test_compare/md_77.lz",
+                                                  "test_compare/md_W.lz", "test_compare/md_hu.lz", "test_compare/md_Hy.lz", "test_compare/md_77H.lz",output_name)
+    print("Hybrid 77H decode size:",dsize_77H,'\n',"LZ77 decode size:",dsize_77,'\n',"LZ_W decode size:",dsize_W,'\n',"LZ_H decode size:",dsize_H,'\n',"LZ_Hy decode size:",dsize_Hy,'\n')
